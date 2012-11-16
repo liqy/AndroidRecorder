@@ -1,0 +1,17 @@
+<resources>
+
+    <string name="app_name">TTSDemo</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    
+    <string name="start">Starting Record</string>
+    <string name="stop">Playing Record</string>
+    <string name="tts">Start TTS</string>
+    <string name="record">Record</string>
+    <string name="replay">Replay</string>
+    
+    <string name="spx_encoder">Speex Encoder</string>
+    <string name="spx_decoder">Speex decoder</string>
+
+</resources>
