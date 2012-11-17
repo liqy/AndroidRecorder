@@ -33,7 +33,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: OggCrc.java 3 2003-06-30 15:33:56Z mgimpel $ */
+/* $Id: OggCrc.java 188 2006-07-09 14:08:12Z mgimpel $ */
 
 /********************************************************************
  *                                                                  *
@@ -49,7 +49,7 @@
 
  function: code raw [Vorbis] packets into framed OggSquish stream and
            decode Ogg streams back into raw packets
- last mod: $Id: OggCrc.java 3 2003-06-30 15:33:56Z mgimpel $
+ last mod: $Id: OggCrc.java 188 2006-07-09 14:08:12Z mgimpel $
 
  note: The CRC code is directly derived from public domain code by
  Ross Williams (ross@guest.adelaide.edu.au).  See docs/framing.html
@@ -64,9 +64,15 @@ package org.xiph.speex;
  * 
  * <p>Ogg uses the same generator polynomial as ethernet, although with an
  * unreflected alg and an init/final of 0, not 0xffffffff.
+ * 
+ * @author Jim Lawrence, helloNetwork.com
+ * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
+ * @version $Revision: 188 $
  */
 public class OggCrc
 {
+  // TODO - implement java.util.zip.Checksum
+  
   /**
    * CRC checksum lookup table
    */
@@ -74,17 +80,19 @@ public class OggCrc
 
   static {
     crc_lookup = new int[256];
-    for(int i=0; i<crc_lookup.length; i++){
-      int r=i<<24;
-      for(int j=0; j<8; j++){
-        if((r& 0x80000000)!=0){
-          r=(r << 1)^0x04c11db7; /* The same as the ethernet generator polynomial, although we use an unreflected alg and an init/final of 0, not 0xffffffff */
+    for (int i = 0; i < crc_lookup.length; i++) {
+      int r = i << 24;
+      for (int j = 0; j < 8; j++) {
+        if ((r& 0x80000000)!=0) {
+          /* The same as the ethernet generator polynomial, although we use an
+          unreflected alg and an init/final of 0, not 0xffffffff */
+          r = (r << 1)^0x04c11db7; 
         }
-        else{
-          r<<=1;
+        else {
+          r <<= 1;
         }
       }
-      crc_lookup[i]=(r&0xffffffff);
+      crc_lookup[i] = (r&0xffffffff);
     }
   }
   
@@ -99,11 +107,16 @@ public class OggCrc
    * @param data - the data
    * @param offset - the offset at which to start calculating the checksum.
    * @param length - the length of data over which to calculate the checksum.
+   * @return the checksum.
    */
-  public static int checksum(int crc, byte[] data, int offset, int length){
-    int end=offset+length;
-    for(;offset<end;offset++){
-      crc=(crc<<8)^crc_lookup[((crc>>>24)&0xff)^(data[offset]&0xff)];
+  public static int checksum(int crc,
+                             final byte[] data,
+                             int offset,
+                             final int length)
+  {
+    int end = offset + length;
+    for (; offset<end; offset++){
+      crc = (crc << 8)^crc_lookup[((crc >>> 24) & 0xff)^(data[offset] & 0xff)];
     }
     return crc;
   }

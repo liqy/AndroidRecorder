@@ -24,7 +24,7 @@
  *      Wimba S.A. is not liable for any consequence related to the           *
  *      use of the provided software.                                         *
  *                                                                            *
- * Class: Tables.java                                                         *
+ * Class: Codebook.java                                                       *
  *                                                                            *
  * Author: James LAWRENCE                                                     *
  * Modified by: Marc GIMPEL                                                   *
@@ -34,7 +34,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: Tables.java 3 2003-06-30 15:33:56Z mgimpel $ */
+/* $Id: Codebook.java 140 2004-10-21 16:21:58Z mgimpel $ */
 
 /* Copyright (C) 2002 Jean-Marc Valin 
 
@@ -70,10 +70,17 @@ package org.xiph.speex;
 
 /**
  * Codebook tables
+ * 
+ * @author Jim Lawrence, helloNetwork.com
+ * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
+ * @version $Revision: 140 $
  */
-public interface Tables
+public interface Codebook
 {
-  public static final int exc_20_32_table[] = {
+  /**
+   * Excitation Codebook
+   */
+  public static final int[] exc_20_32_table = {
     12,32,25,46,36,33,9,14,-3,6,1,-8,0,-10,-5,-7,-7,-7,-5,-5,
     31,-27,24,-32,-4,10,-11,21,-3,19,23,-9,22,24,-10,-1,-10,-13,-7,-11,
     42,-33,31,19,-8,0,-10,-16,1,-21,-17,10,-8,14,8,4,11,-2,5,-2,
@@ -108,7 +115,10 @@ public interface Tables
     0,3,-7,-4,13,12,-31,-14,6,-5,3,5,17,43,50,25,10,1,-6,-2 
   };
 
-  public static final int exc_10_16_table[]= {
+  /**
+   * Excitation Codebook
+   */
+  public static final int[] exc_10_16_table = {
     22,39,14,44,11,35,-2,23,-4,6,
     46,-28,13,-27,-23,12,4,20,-5,9,
     37,-18,-23,23,0,9,-6,-20,4,-1,
@@ -127,7 +137,10 @@ public interface Tables
     -15,-28,52,32,5,-5,-17,-20,-10,-1 
   };
 
-  public static final int exc_10_32_table[]= {
+  /**
+   * Excitation Codebook
+   */
+  public static final int[] exc_10_32_table = {
     7,17,17,27,25,22,12,4,-3,0,
     28,-36,39,-24,-15,3,-9,15,-5,10,
     31,-28,11,31,-21,9,-11,-11,-2,-7,
@@ -162,7 +175,10 @@ public interface Tables
     -32,-30,-21,-8,4,12,17,15,14,11 
   };
 
-  public static final int exc_5_256_table[]={
+  /**
+   * Excitation Codebook
+   */
+  public static final int[] exc_5_256_table = {
     -8,-37,5,-43,5,
     73,61,39,12,-3,
     -61,-32,2,42,30,
@@ -421,7 +437,10 @@ public interface Tables
     30,-27,-15,7,15 
   };
 
-  public static final int exc_5_64_table[]={
+  /**
+   * Excitation Codebook
+   */
+  public static final int[] exc_5_64_table = {
     1,5,-15,49,-66,
     -48,-4,50,-44,7,
     37,16,-18,25,-26,
@@ -488,7 +507,10 @@ public interface Tables
     -3,-1,2,2,0 
   };
 
-  public static final int exc_8_128_table[]={
+  /**
+   * Excitation Codebook
+   */
+  public static final int[] exc_8_128_table = {
     -14,9,13,-32,2,-10,31,-10,
     -8,-8,6,-4,-1,10,-64,23,
     6,20,13,6,8,-22,16,34,
@@ -619,7 +641,10 @@ public interface Tables
     36,33,-40,-12,-4,-5,23,19 
   };
 
-  public static final int gain_cdbk_nb[] = { //384
+  /**
+   * Gain Codebook (narrowband)
+   */
+  public static final int[] gain_cdbk_nb = { //384
     -32,-32,-32,
     -28,-67,-5,
     -42,-6,-32,
@@ -750,7 +775,10 @@ public interface Tables
     -7,9,-38 
   };
 
-  public static final int gain_cdbk_lbr[] = { //96
+  /**
+   * Gain Codebook (LBR)
+   */
+  public static final int[] gain_cdbk_lbr = { //96
     -32,-32,-32,
     -31,-58,-16,
     -41,-24,-43,
@@ -785,7 +813,10 @@ public interface Tables
     -10,14,-40 
   };
 
-  public static final int hexc_10_32_table[]={
+  /**
+   * Excitation Codebook
+   */
+  public static final int[] hexc_10_32_table = {
     -3, -2, -1, 0, -4, 5, 35, -40, -9, 13, 
     -44, 5, -27, -1, -7, 6, -11, 7, -8, 7, 
     19, -14, 15, -4, 9, -10, 10, -8, 10, -9, 
@@ -820,7 +851,10 @@ public interface Tables
     -83, 38, -39, 4, -16, -6, -2, -5, 5, -2, 
   };
 
-  public static final int hexc_table[]={ //1024
+  /**
+   * Excitation Codebook
+   */
+  public static final int[] hexc_table = { //1024
     -24, 21, -20, 5, -5, -7, 14, -10, 
     2, -27, 16, -20, 0, -32, 26, 19, 
     8, -11, -41, 31, 28, -27, -32, 34, 
@@ -842,7 +876,7 @@ public interface Tables
     -1, 6, -25, 14, -22, -20, 47, -11, 
     16, 2, 38, -23, -19, -30, -9, 40, 
     -11, 5, 4, -6, 8, 26, -21, -11, 
-    131, 4, 1, 6, -9, 2, -7, -2, 
+    127, 4, 1, 6, -9, 2, -7, -2, 
     -3, 7, -5, 10, -19, 7, -106, 91, 
     -3, 9, -4, 21, -8, 26, -80, 8, 
     1, -2, -10, -17, -17, -27, 32, 71, 
@@ -951,7 +985,10 @@ public interface Tables
     -2, 6, -2, 31, 45, -76, 23, -25, 
   };
    
-  public static final int high_lsp_cdbk[]= { //512
+  /**
+   * LSP Codebook (high)
+   */
+  public static final int[] high_lsp_cdbk = { //512
     39,12,-14,-20,-29,-61,-67,-76,
     -32,-71,-67,68,77,46,34,5,
     -13,-48,-46,-72,-81,-84,-60,-58,
@@ -1018,7 +1055,10 @@ public interface Tables
     -42,-74,-48,21,-4,70,52,10 
   };
 
-  public static final int high_lsp_cdbk2[]={ //512
+  /**
+   * LSP Codebook (high)
+   */
+  public static final int[] high_lsp_cdbk2 = { //512
     -36,-62,6,-9,-10,-14,-56,23,
     1,-26,23,-48,-17,12,8,-7,
     23,29,-36,-28,-6,-29,-17,-5,
@@ -1085,7 +1125,21 @@ public interface Tables
     -45,4,-4,1,5,22,11,23 
   };
 
-  public static final int cdbk_nb[]={ //640
+  /** */
+  public static final int NB_CDBK_SIZE       = 64;
+  /** */
+  public static final int NB_CDBK_SIZE_LOW1  = 64;
+  /** */
+  public static final int NB_CDBK_SIZE_LOW2  = 64;
+  /** */
+  public static final int NB_CDBK_SIZE_HIGH1 = 64;
+  /** */
+  public static final int NB_CDBK_SIZE_HIGH2 = 64;
+
+  /**
+   * Codebook (narrowband)
+   */
+  public static final int[] cdbk_nb = { //640
     30,19,38,34,40,32,46,43,58,43,
     5,-18,-25,-40,-33,-55,-52,20,34,28,
     -20,-63,-97,-92,61,53,47,49,53,75,
@@ -1152,7 +1206,10 @@ public interface Tables
     -22,-67,-84,-71,-50,3,11,-9,2,62 
   };
 
-  public static final int cdbk_nb_low1[]={ //320
+  /**
+   * Codebook (narrowband)
+   */
+  public static final int[] cdbk_nb_low1 = { //320
     -34,-52,-15,45,2,
     23,21,52,24,-33,
     -9,-1,9,-44,-41,
@@ -1219,7 +1276,10 @@ public interface Tables
     -2,-8,2,51,-51 
   };
 
-  public static final int cdbk_nb_low2[]={ //320
+  /**
+   * Codebook (narrowband)
+   */
+  public static final int[] cdbk_nb_low2 = { //320
     -6,53,-21,-24,4,
     26,17,-4,-37,25,
     17,-36,-13,31,3,
@@ -1286,7 +1346,10 @@ public interface Tables
     -8,-10,31,64,-65 
   };
 
-  public static final int cdbk_nb_high1[]={ //320
+  /**
+   * Codebook (narrowband)
+   */
+  public static final int[] cdbk_nb_high1 = { //320
     -26,-8,29,21,4,
     19,-39,33,-7,-36,
     56,54,48,40,29,
@@ -1353,7 +1416,10 @@ public interface Tables
     -69,18,15,-15,-5 
   };
 
-  public static final int cdbk_nb_high2[]={ //320
+  /**
+   * Codebook (narrowband)
+   */
+  public static final int[] cdbk_nb_high2 = { //320
     11,47,16,-9,-46,
     -32,26,-64,34,-5,
     38,-7,47,20,2,
@@ -1420,7 +1486,10 @@ public interface Tables
     16,-35,7,38,-27 
   };
 
-  public static final float h0[] = {
+  /**
+   * QMF (Quadratic Mirror Filter) table
+   */
+  public static final float[] h0 = {
     3.596189e-05f, -0.0001123515f,
     -0.0001104587f, 0.0002790277f,
     0.0002298438f, -0.0005953563f,
@@ -1455,7 +1524,10 @@ public interface Tables
     -0.0001123515f, 3.596189e-05f
   };
 
-  public static final float h1[] = {
+  /**
+   * QMF (Quadratic Mirror Filter) table
+   */
+  public static final float[] h1 = {
     3.596189e-05f, 0.0001123515f,
     -0.0001104587f, -0.0002790277f,
     0.0002298438f, 0.0005953563f,

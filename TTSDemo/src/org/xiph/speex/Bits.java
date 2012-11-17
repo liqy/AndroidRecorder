@@ -34,7 +34,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: Bits.java 3 2003-06-30 15:33:56Z mgimpel $ */
+/* $Id: Bits.java 188 2006-07-09 14:08:12Z mgimpel $ */
 
 /* Copyright (C) 2002 Jean-Marc Valin 
 
@@ -69,84 +69,98 @@
 package org.xiph.speex;
 
 /**
- * Speex bit packing and unpacking class
+ * Speex bit packing and unpacking class.
+ * 
+ * @author Jim Lawrence, helloNetwork.com
+ * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
+ * @version $Revision: 188 $
  */
 public class Bits
 {
-  /**< "raw" data */
-  private byte bytes[];
+  /** Default buffer size */
+  public static final int DEFAULT_BUFFER_SIZE = 1024;
   
-  /**< Position of the byte "cursor" */
+  /** "raw" data */
+  private byte[] bytes;
+  
+  /** Position of the byte "cursor" */
   private int  bytePtr;
   
-  /**< Position of the bit "cursor" within the current byte */
+  /** Position of the bit "cursor" within the current byte */
   private int  bitPtr;  
   
   /**
-   * Initialise
+   * Initialise the bit packing variables.
    */
   public void init()
   {
-    bytes = new byte[2000];
+    bytes = new byte[DEFAULT_BUFFER_SIZE];
     bytePtr=0;
     bitPtr=0;
   }
 
   /**
-   * Advance n bits
+   * Advance n bits.
+   * @param n - the number of bits to advance.
    */
-  public void advance(int n)
+  public void advance(final int n)
   {
-    int nbytes= n >> 3, nbits= n & 7;
-    bytePtr += nbytes;
-    bitPtr += nbits;
-    
-    if (bitPtr>7) {
-      bitPtr-=8;
+    bytePtr += n >> 3;
+    bitPtr += n & 7;
+    if (bitPtr > 7) {
+      bitPtr -= 8;
       bytePtr++;
     }
   }
 
   /**
-   * Sets the buffer to the given value
+   * Sets the buffer to the given value.
+   * @param newBuffer
    */
-  protected void setBuffer(byte[] pBuffer){
-    bytes = pBuffer;
+  protected void setBuffer(final byte[] newBuffer)
+  {
+    bytes = newBuffer;
   }  
   
   /**
-   * Take a peek at the next bit
+   * Take a peek at the next bit.
+   * @return the next bit.
    */
   public int peek()
   {
-    return ((bytes[bytePtr] & 0xFF)>>(7-bitPtr))&1;
+    return ((bytes[bytePtr] & 0xFF) >> (7 - bitPtr)) & 1;
   }
 
   /**
-   * Read the given array into the buffer
+   * Read the given array into the buffer.
+   * @param newbytes
+   * @param offset
+   * @param len
    */
-  public void read_from(byte newbytes[], int offset, int len)
+  public void read_from(final byte[] newbytes,
+                        final int offset,
+                        final int len)
   {
-    for (int i=0;i<len;i++)
-      bytes[i]=newbytes[offset+i];
-    bytePtr=0;
-    bitPtr=0;
+    for (int i = 0; i < len; i++)
+      bytes[i] = newbytes[offset + i];
+    bytePtr = 0;
+    bitPtr = 0;
   }
 
   /**
    * Read the next N bits from the buffer.
+   * @param nbBits - the number of bits to read.
+   * @return the next N bits from the buffer.
    */
   public int unpack(int nbBits)  
   {
-    int d=0;
-    while(nbBits!=0)
-    {
-      d<<=1;
-      d |= ((bytes[bytePtr] & 0xFF)>>(7-bitPtr))&1;
+    int d = 0;
+    while (nbBits != 0) {
+      d <<= 1;
+      d |= ((bytes[bytePtr] & 0xFF) >> (7 - bitPtr)) & 1;
       bitPtr++;
-      if (bitPtr==8)
-      {
-        bitPtr=0;
+      if (bitPtr == 8) {
+        bitPtr = 0;
         bytePtr++;
       }
       nbBits--;
@@ -155,30 +169,30 @@ public class Bits
   }
   
   /**
-   * Write n bits of the given data to the buffer
+   * Write N bits of the given data to the buffer.
+   * @param data - the data to write.
+   * @param nbBits - the number of bits of the data to write.
    */
   public void pack(int data, int nbBits)
   {
-    int i;
     int d=data;
 
-    while(bytePtr+((nbBits+bitPtr)>>3) >= bytes.length)
-    {
-      System.err.println("Buffer too small to pack bits");
-      int size = bytes.length*2;
+    while (bytePtr+((nbBits+bitPtr)>>3) >= bytes.length) {
+      // System.err.println("Buffer too small to pack bits");
+      /* Expand the buffer as needed. */
+      int size = bytes.length * 2;
       byte[] tmp = new byte[size];
       System.arraycopy(bytes, 0, tmp, 0, bytes.length);
       bytes = tmp;
     }
-    while(nbBits>0)
-    {
+    while (nbBits > 0) {
       int bit;
-      bit = (d>>(nbBits-1))&1;
-      bytes[bytePtr] |= bit<<(7-bitPtr);
+      bit = (d >> (nbBits - 1)) & 1;
+      bytes[bytePtr] |= bit << (7 - bitPtr);
       bitPtr++;
-      if (bitPtr==8)
+      if (bitPtr == 8)
       {
-        bitPtr=0;
+        bitPtr = 0;
         bytePtr++;
       }
       nbBits--;
@@ -186,7 +200,8 @@ public class Bits
   }
   
   /**
-   * Returns the current buffer array
+   * Returns the current buffer array.
+   * @return the current buffer array.
    */
   public byte[] getBuffer()
   {
@@ -194,7 +209,8 @@ public class Bits
   }
 
   /**
-   * Returns the number of bytes used in the current buffer 
+   * Returns the number of bytes used in the current buffer.
+   * @return the number of bytes used in the current buffer.
    */
   public int getBufferSize()
   {

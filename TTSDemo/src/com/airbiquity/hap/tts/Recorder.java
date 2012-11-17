@@ -11,7 +11,6 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Environment;
-import android.util.Log;
 
 public class Recorder implements Runnable {
 	
@@ -80,7 +79,6 @@ public class Recorder implements Runnable {
 			}
 			
 			try {
-				Log.d("TAG", "==PCM==>"+new String(tempBuffer,0,bufferRead));
 				dataOutputStreamInstance.write(tempBuffer, 0, bufferRead);
 			} catch (IOException e) {
 				e.printStackTrace();

@@ -1,6 +1,6 @@
 /******************************************************************************
  *                                                                            *
- * Copyright (c) 1999-2003 Wimba S.A., All Rights Reserved.                   *
+ * Copyright (c) 1999-2004 Wimba S.A., All Rights Reserved.                   *
  *                                                                            *
  * COPYRIGHT:                                                                 *
  *      This software is the property of Wimba S.A.                           *
@@ -24,62 +24,91 @@
  *      Wimba S.A. is not liable for any consequence related to the           *
  *      use of the provided software.                                         *
  *                                                                            *
- * Class: UwbDecoder.java                                                     *
+ * Class: RawWriter.java                                                      *
  *                                                                            *
- * Author: James LAWRENCE                                                     *
- * Modified by: Marc GIMPEL                                                   *
- * Based on code by: Jean-Marc VALIN                                          *
+ * Author: Marc GIMPEL                                                        *
  *                                                                            *
- * Date: March 2003                                                           *
+ * Date: 6th January 2004                                                     *
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: UwbDecoder.java 3 2003-06-30 15:33:56Z mgimpel $ */
-
-/* Copyright (C) 2002 Jean-Marc Valin 
-
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions
-   are met:
-   
-   - Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-   
-   - Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.
-   
-   - Neither the name of the Xiph.org Foundation nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-   
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR
-   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+/* $Id: RawWriter.java 140 2004-10-21 16:21:58Z mgimpel $ */
 
 package org.xiph.speex;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.FileOutputStream;
+
 /**
- * UltraWideBand Speex Decoder
+ * Raw Audio File Writer.
+ *
+ * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
+ * @version $Revision: 140 $
  */
-public class UwbDecoder
-  extends WbDecoder
+public class RawWriter
+  extends AudioFileWriter
 {
+  private OutputStream out;
+
   /**
-   * Initialisation
+   * Closes the output file.
+   * @exception IOException if there was an exception closing the Audio Writer.
    */
-  public void init()
+  public void close()
+    throws IOException 
   {
-    lowdec = new WbDecoder();
-    sbinit(320, 80, 8, 1280, ModesWB.uwbsubmodes, 1, .5f);
+    out.close(); 
+  }
+  
+  /**
+   * Open the output file. 
+   * @param file - file to open.
+   * @exception IOException if there was an exception opening the Audio Writer.
+   */
+  public void open(final File file)
+    throws IOException
+  {
+    file.delete(); 
+    out = new FileOutputStream(file);
+  }
+
+  /**
+   * Open the output file. 
+   * @param filename - file to open.
+   * @exception IOException if there was an exception opening the Audio Writer.
+   */
+  public void open(final String filename)
+    throws IOException 
+  {
+    open(new File(filename)); 
+  }
+
+  /**
+   * Writes the header pages that start the Ogg Speex file. 
+   * Prepares file for data to be written.
+   * @param comment description to be included in the header.
+   * @exception IOException
+   */
+  public void writeHeader(final String comment)
+    throws IOException
+  {
+    // a raw audio file has no header
+  }
+
+  /**
+   * Writes a packet of audio. 
+   * @param data audio data
+   * @param offset the offset from which to start reading the data.
+   * @param len the length of data to read.
+   * @exception IOException
+   */
+  public void writePacket(final byte[] data,
+                          final int offset,
+                          final int len)
+    throws IOException 
+  {
+    out.write(data, offset, len);
   }
 }

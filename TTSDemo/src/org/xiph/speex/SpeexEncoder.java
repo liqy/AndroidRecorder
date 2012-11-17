@@ -33,25 +33,25 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: SpeexEncoder.java 3 2003-06-30 15:33:56Z mgimpel $ */
+/* $Id: SpeexEncoder.java 188 2006-07-09 14:08:12Z mgimpel $ */
 
-/* Copyright (C) 2002 Jean-Marc Valin 
+/* Copyright (C) 2002 Jean-Marc Valin
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-   
+
    - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
-   
+
    - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
-   
+
    - Neither the name of the Xiph.org Foundation nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
-   
+
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -67,52 +67,63 @@
 
 package org.xiph.speex;
 
+import android.util.Log;
+
 /**
  * Main Speex Encoder class.
  * This class encodes the given PCM 16bit samples into Speex packets.
+ *
+ * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
+ * @version $Revision: 188 $
  */
 public class SpeexEncoder
 {
-  public static final String VERSION = "Java Speex Encoder v0.7 ($Revision: 3 $)";
+  /**
+   * Version of the Speex Encoder
+   */
+  public static final String VERSION = "Java Speex Encoder v0.9.7 ($Revision: 188 $)";
 
-  private Encoder       encoder;
-  private Bits          bits;
-  private float[]       rawData;
-  private int           sampleRate;
-  private int           channelCount;
-  private int           frameSize;
-    
+  private Encoder encoder;
+  private Bits    bits;
+  private float[] rawData;
+  private int     sampleRate;
+  private int     channels;
+  private int     frameSize;
+
   /**
    * Constructor
    */
-  public SpeexEncoder() 
-  {	    
+  public SpeexEncoder()
+  {
     bits = new Bits();
   }
 
   /**
    * Initialisation
+   * @param mode       the mode of the encoder (0=NB, 1=WB, 2=UWB).
+   * @param quality    the quality setting of the encoder (between 0 and 10).
+   * @param sampleRate the number of samples per second.
+   * @param channels   the number of audio channels (1=mono, 2=stereo, ...).
+   * @return true if initialisation successful.
    */
-  public boolean init(int mode, int quality, int sampleRate, int channels)
+  public boolean init(final int mode,
+                      final int quality,
+                      final int sampleRate,
+                      final int channels)
   {
-    if (mode==0) {
-      new ModesNB().init();
-    }
-//Wideband
-    else {
-      new ModesWB().init();
-    }
-//*/    
     switch (mode) {
       case 0:
         encoder = new NbEncoder();
+        ((NbEncoder)encoder).nbinit();
         break;
 //Wideband
       case 1:
-        encoder = new WbEncoder();
+        encoder = new SbEncoder();
+        ((SbEncoder)encoder).wbinit();
         break;
       case 2:
-        encoder = new UwbEncoder();
+        encoder = new SbEncoder();
+        ((SbEncoder)encoder).uwbinit();
         break;
 //*/
       default:
@@ -120,47 +131,50 @@ public class SpeexEncoder
     }
 
     /* initialize the speex decoder */
-    encoder.init();
     encoder.setQuality(quality);
-    
+
     /* set decoder format and properties */
-    this.frameSize    = encoder.getFrameSize();
-    this.sampleRate   = sampleRate;
-    this.channelCount = channels;
-    rawData           = new float[sampleRate*channelCount];
-    
+    this.frameSize  = encoder.getFrameSize();
+    this.sampleRate = sampleRate;
+    this.channels   = channels;
+    rawData         = new float[channels*frameSize];
+
     bits.init();
     return true;
   }
 
   /**
-   * Returns the Encoder being used (Narrowband, Wideband or Ultrawideband)
+   * Returns the Encoder being used (Narrowband, Wideband or Ultrawideband).
+   * @return the Encoder being used (Narrowband, Wideband or Ultrawideband).
    */
-  public Encoder getEncoder() 
+  public Encoder getEncoder()
   {
     return encoder;
   }
 
   /**
-   * Returns the sample rate
+   * Returns the sample rate.
+   * @return the sample rate.
    */
-  public int getSampleRate() 
+  public int getSampleRate()
   {
     return sampleRate;
   }
 
   /**
-   * Returns the number of channels
+   * Returns the number of channels.
+   * @return the number of channels.
    */
-  public int getChannels() 
+  public int getChannels()
   {
-    return channelCount;
+    return channels;
   }
 
   /**
-   * Returns the size of a frame
+   * Returns the size of a frame.
+   * @return the size of a frame.
    */
-  public int getFrameSize() 
+  public int getFrameSize()
   {
     return frameSize;
   }
@@ -168,8 +182,11 @@ public class SpeexEncoder
   /**
    * Pull the decoded data out into a byte array at the given offset
    * and returns the number of bytes of encoded data just read.
+   * @param data
+   * @param offset
+   * @return the number of bytes of encoded data just read.
    */
-  public int getProcessedData(byte data[], int offset) 
+  public int getProcessedData(final byte[] data, final int offset)
   {
     int size = bits.getBufferSize();
     System.arraycopy(bits.getBuffer(), 0, data, offset, size);
@@ -179,24 +196,70 @@ public class SpeexEncoder
 
   /**
    * Returns the number of bytes of encoded data ready to be read.
+   * @return the number of bytes of encoded data ready to be read.
    */
-  public int getProcessedDataByteSize() 
+  public int getProcessedDataByteSize()
   {
-    return bits.getBufferSize();	
+    return bits.getBufferSize();
   }
-  
+
   /**
    * This is where the actual encoding takes place
+   * @param data
+   * @param offset
+   * @param len
+   * @return true if successful.
    */
-  public boolean processData(byte data[], int offset, int len)
+  public boolean processData(final byte[] data,
+                             final int offset,
+                             final int len)
   {
-    // read raw bytes into samples
+    // converty raw bytes into float samples
     mapPcm16bitLittleEndian2Float(data, offset, rawData, 0, len/2);
     // encode the bitstream
-    if (channelCount==2) {
-      Stereo.encode(bits, rawData, len/2);
+    return processData(rawData, len / 2);
+  }
+
+  /**
+   * Encode an array of shorts.
+   * @param data
+   * @param offset
+   * @param numShorts
+   * @return true if successful.
+   */
+  public boolean processData(final short[] data,
+                             final int offset,
+                             final int numShorts)
+  {
+    int numSamplesRequired = channels * frameSize;
+    if (numShorts != numSamplesRequired) {
+      throw new IllegalArgumentException("SpeexEncoder requires " + numSamplesRequired + " samples to process a Frame, not " + numShorts);
     }
-    encoder.encode(bits, rawData);
+    // convert shorts into float samples,
+    for (int i = 0; i < numShorts; i++) {
+      rawData[i] = (float) data[offset + i ];
+    }
+    // encode the bitstream
+    return processData(rawData, numShorts);
+  }
+
+  /**
+   * Encode an array of floats.
+   * @param data
+   * @param numSamples
+   * @return true if successful.
+   */
+  public boolean processData(final float[] data, final int numSamples)
+  {
+    int numSamplesRequired = channels * frameSize;
+    if (numSamples != numSamplesRequired) {
+      throw new IllegalArgumentException("SpeexEncoder requires " + numSamplesRequired + " samples to process a Frame, not " + numSamples );
+    }
+    // encode the bitstream
+    if (channels == 2) {
+      Stereo.encode(bits, data, frameSize);
+    }
+    encoder.encode(bits, data);
     return true;
   }
 
@@ -210,13 +273,24 @@ public class SpeexEncoder
    *      combined with shifting operations.
    * </ul>
    * @param pcm16bitBytes - byte array of linear 16-bit PCM formated audio.
+   * @param offsetInput
    * @param samples - float array to receive the 16-bit linear audio samples.
+   * @param offsetOutput
+   * @param length
    */
-  public static void mapPcm16bitLittleEndian2Float(byte[] pcm16bitBytes, int offsetInput, float[] samples, int offsetOutput, int length)
+  public static void mapPcm16bitLittleEndian2Float(final byte[] pcm16bitBytes,
+                                                   final int offsetInput,
+                                                   final float[] samples,
+                                                   final int offsetOutput,
+                                                   final int length)
   {
     if (pcm16bitBytes.length - offsetInput < 2 * length) {
       throw new IllegalArgumentException("Insufficient Samples to convert to floats");
     }
+    
+    Log.d("---->", "samples"+samples.length);
+    Log.d("---->", "offsetOutput"+offsetOutput);
+    Log.d("---->", "length"+length);
     if (samples.length - offsetOutput < length) {
       throw new IllegalArgumentException("Insufficient float buffer to convert the samples");
     }

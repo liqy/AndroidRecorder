@@ -34,7 +34,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: SpeexDecoder.java 3 2003-06-30 15:33:56Z mgimpel $ */
+/* $Id: SpeexDecoder.java 188 2006-07-09 14:08:12Z mgimpel $ */
 
 /* Copyright (C) 2002 Jean-Marc Valin 
 
@@ -67,8 +67,9 @@
 */
 
 package org.xiph.speex;
-
  
+import java.io.StreamCorruptedException;
+
 /**
  * Main Speex Decoder class.
  * This class decodes the given Speex packets into PCM 16bit samples.
@@ -80,81 +81,86 @@ package org.xiph.speex;
  * byte[] decoded = new byte[speexDecoder.getProcessedBataByteSize()];
  * speexDecoder.getProcessedData(decoded, 0);
  * </pre>
+ * 
+ * @author Jim Lawrence, helloNetwork.com
+ * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
+ * @version $Revision: 188 $
  */
 public class SpeexDecoder
 {
-  public static final String VERSION = "Java Speex Decoder v0.7 ($Revision: 3 $)";
+  /**
+   * Version of the Speex Decoder
+   */
+  public static final String VERSION = "Java Speex Decoder v0.9.7 ($Revision: 188 $)";
 
-  private int           packetNo;
-  private int           sampleRate;
-  private int           channelCount;
-  private float[]       decodedData;
-  private short[]       outputData;
-  private int           outputSize;
-  private Bits          bits;
-  private Decoder       decoder;
-  private int           frameSize;
-  private boolean       headerRead;
-    
+  private int     sampleRate;
+  private int     channels;
+  private float[] decodedData;
+  private short[] outputData;
+  private int     outputSize;
+  private Bits    bits;
+  private Decoder decoder;
+  private int     frameSize;
+
   /**
    * Constructor
    */
-  public SpeexDecoder() 
-  {	    
+  public SpeexDecoder()
+  {
     bits = new Bits();
-    packetNo     = 0;
-    sampleRate   = 0;
-    channelCount = 0;
-    headerRead  = false;
+    sampleRate = 0;
+    channels   = 0;
   }
   
   /**
-   * initialise the Speex Decoder.
+   * Initialise the Speex Decoder.
+   * @param mode       the mode of the decoder (0=NB, 1=WB, 2=UWB).
+   * @param sampleRate the number of samples per second.
+   * @param channels   the number of audio channels (1=mono, 2=stereo, ...).
+   * @param enhanced   whether to enable perceptual enhancement or not.
+   * @return true if initialisation successful.
    */
-  public boolean init(int mode, int SampleRate, int channels)
+  public boolean init(final int mode,
+                      final int sampleRate,
+                      final int channels,
+                      final boolean enhanced)
   {
-    if (mode==0) {
-      new ModesNB().init();
-    }
-//Wideband
-    else {
-      new ModesWB().init();
-    }
-//*/
     switch (mode) {
     case 0:
       decoder = new NbDecoder();
+      ((NbDecoder)decoder).nbinit();
       break;
 //Wideband
     case 1:
-      decoder = new WbDecoder();
+      decoder = new SbDecoder();
+      ((SbDecoder)decoder).wbinit();
       break;
     case 2:
-      decoder = new UwbDecoder();
+      decoder = new SbDecoder();
+      ((SbDecoder)decoder).uwbinit();
       break;
 //*/
     default:
       return false;
-    }  
+    }
     
     /* initialize the speex decoder */
-    decoder.init();
+    decoder.setPerceptualEnhancement(enhanced);
     /* set decoder format and properties */
     this.frameSize  = decoder.getFrameSize();
-    this.sampleRate = SampleRate;
-    channelCount    = channels;
-    int secondSize  = sampleRate*channelCount;
-    decodedData     = new float[secondSize*2];
-    outputData      = new short[secondSize*2];
-    packetNo        = 0;
+    this.sampleRate = sampleRate;
+    this.channels   = channels;
+    int secondSize  = sampleRate * channels;
+    decodedData     = new float[secondSize * 2];
+    outputData      = new short[secondSize * 2];
     outputSize      = 0;
-    headerRead = true;
     bits.init();
     return true;
   }
   
   /**
-   * Returns the sample rate
+   * Returns the sample rate.
+   * @return the sample rate.
    */
   public int getSampleRate() 
   {
@@ -162,26 +168,30 @@ public class SpeexDecoder
   }
   
   /**
-   * Returns the number of channels
+   * Returns the number of channels.
+   * @return the number of channels.
    */
   public int getChannels() 
   {
-    return channelCount;
+    return channels;
   }
   
   /**
    * Pull the decoded data out into a byte array at the given offset
-   * and returns tne number of bytes processed and just read
+   * and returns the number of bytes processed and just read.
+   * @param data
+   * @param offset
+   * @return the number of bytes processed and just read.
    */
-  public int getProcessedData(byte data[], int offset) 
+  public int getProcessedData(final byte[] data, final int offset) 
   {    
     if (outputSize<=0) {
       return outputSize;
     }
-    for(int i=0; i<outputSize; i++) {
+    for (int i=0; i<outputSize; i++) {
       int dx     =  offset + (i<<1);
       data[dx]   = (byte) (outputData[i] & 0xff);
-      data[dx+1] = (byte) ((outputData[i] >> 8) &  0xff );
+      data[dx+1] = (byte) ((outputData[i] >> 8) & 0xff );
     }
     int size = outputSize*2;
     outputSize = 0;
@@ -189,84 +199,85 @@ public class SpeexDecoder
   }
 
   /**
-   * Returns tne number of bytes processed and ready to be read
+   * Pull the decoded data out into a short array at the given offset
+   * and returns tne number of shorts processed and just read
+   * @param data
+   * @param offset
+   * @return the number of samples processed and just read.
+   */
+  public int getProcessedData(final short[] data, final int offset)
+  {
+    if (outputSize<=0) {
+      return outputSize;
+    }
+    System.arraycopy(outputData, 0, data, offset, outputSize);
+    int size = outputSize;
+    outputSize = 0;
+    return size;
+  }
+
+  /**
+   * Returns the number of bytes processed and ready to be read.
+   * @return the number of bytes processed and ready to be read.
    */
   public int getProcessedDataByteSize() 
   {
-    return (outputSize*2);	
+    return (outputSize * 2);
   }
   
   /**
    * This is where the actual decoding takes place
+   * @param data - the Speex data (frame) to decode.
+   * If it is null, the packet is supposed lost.
+   * @param offset - the offset from which to start reading the data.
+   * @param len - the length of data to read (Speex frame size).
+   * @throws StreamCorruptedException If the input stream is invalid.
    */
-  public boolean processData(byte data[], int offset, int len)
+  public void processData(final byte[] data,
+                          final int offset,
+                          final int len)
+    throws StreamCorruptedException
   {
-    int i=0;
-    
-    /* if we tried to read bad packet header, input stream is in error */
-	if (packetNo > 0 && !headerRead) {
-		return false;
-	}
-    
-    /* if first packet, process as Speex header*/
-    if (!headerRead) {
-      if (!readHeader(data, offset, len)) {
-        packetNo++;
-        return false;
-      }
+    if (data == null) {
+      processData(true);
     }
-    else if (packetNo!=1) /* ignores comment packets */
-    {
+    else {
       /* read packet bytes into bitstream */
       bits.read_from(data, offset, len);
-      /* decode the bitstream */
-      decoder.decode(bits, decodedData);
-      if (channelCount == 2)
-        decoder.decodeStereo(decodedData, frameSize);
-
-      /* PCM saturation */
-      for (i=0;i<frameSize*channelCount;i++) {
-        if (decodedData[i]>32767.0f)
-          decodedData[i]=32767.0f;
-        else if (decodedData[i]<-32768.0f)
-          decodedData[i]=-32768.0f;
-      }
-
-      /* convert to short and save to buffer */
-      for (i=0; i<frameSize*channelCount; i++, outputSize++) {
-        outputData[outputSize]= (decodedData[i]>0) ? 
-                                    (short) (decodedData[i]+.5) : (short)(decodedData[i]-.5);
-      } 
+      processData(false);
     }
-    packetNo++;
-    return true;
   }
 
   /**
-   *  Reads the header packet. 
+   * This is where the actual decoding takes place.
+   * @param lost - true if the Speex packet has been lost.
+   * @throws StreamCorruptedException If the input stream is invalid.
    */
-  private boolean readHeader(byte[] packet, int offset, int bytes)
+  public void processData(final boolean lost)
+    throws StreamCorruptedException
   {
-    int mode;
-    if (bytes!=80) {
-      return false;
+    int i;
+    /* decode the bitstream */
+    if (lost)
+      decoder.decode(null, decodedData);
+    else
+      decoder.decode(bits, decodedData);
+    if (channels == 2)
+      decoder.decodeStereo(decodedData, frameSize);
+
+    /* PCM saturation */
+    for (i=0; i<frameSize*channels; i++) {
+      if (decodedData[i] > 32767.0f)
+        decodedData[i] = 32767.0f;
+      else if (decodedData[i] < -32768.0f)
+        decodedData[i] = -32768.0f;
     }
-    if (!"Speex   ".equals(new String(packet, 0, 8))) {
-      return false;
-    }
-    mode         = packet[40+offset] & 0xFF;
-    sampleRate   = bytestoint(packet, offset+36);
-    channelCount = bytestoint(packet, offset+48);
-    return init(mode, sampleRate, channelCount);
-  }	
-  
-  /**
-   * Converts the bytes from the given array to an integer
-   * @param a - the array
-   * @param i - the offset
-   */
-  private int bytestoint(byte[] a, int i)
-  {
-    return ((a[i+3] & 0xFF) << 24) | ((a[i+2] & 0xFF) << 16) | ((a[i+1] & 0xFF) << 8) | (a[i+0] & 0xFF);
+
+    /* convert to short and save to buffer */
+    for (i = 0; i < frameSize * channels; i++, outputSize++) {
+      outputData[outputSize] = (decodedData[i] > 0) ?
+                               (short) (decodedData[i] + 0.5f) :
+                               (short) (decodedData[i] - 0.5f);
+    } 
   }
 }

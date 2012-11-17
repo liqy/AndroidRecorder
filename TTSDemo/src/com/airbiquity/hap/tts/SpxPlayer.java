@@ -8,17 +8,18 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.xiph.speex.SpeexDecoder;
-import org.xiph.speex.SpeexEncoder;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Environment;
-import android.util.Log;
 
-public class Player implements Runnable{
+public class SpxPlayer implements Runnable{
 	
+	private static final int mode = 1;
 	private static final int sampleRateInHz = 16000;
+	private static final int channels = 1;
+	
 	private static final int channelConfig = AudioFormat.CHANNEL_OUT_MONO;
 	private static final int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
 	
@@ -28,16 +29,20 @@ public class Player implements Runnable{
 	private final Object mutex = new Object();
 	private volatile boolean isPlaying = false;
 	
-	public Player(){
+	private SpeexDecoder spxDecoder = null;
+	
+	public SpxPlayer(){
 		try {
-			File pcmFile = new File(Environment.getExternalStorageDirectory() + "/test.pcm");
+			File pcmFile = new File(Environment.getExternalStorageDirectory() + "/test.spx");
 			dataInputStreamInstance = new DataInputStream(new FileInputStream(pcmFile));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+		
+		spxDecoder = new SpeexDecoder();
 	}
 	
-	public Player(InputStream is){
+	public SpxPlayer(InputStream is){
 		this.dataInputStreamInstance = new DataInputStream(is);
 	}
 
@@ -53,43 +58,25 @@ public class Player implements Runnable{
 			}
 		}
 		
+		spxDecoder.init(mode, sampleRateInHz, channels,true);
+		
 		int bufferSizeInBytes = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, audioEncoding);
 		audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz, channelConfig, audioEncoding, 2 * bufferSizeInBytes, AudioTrack.MODE_STREAM);
 		audioTrack.play();
-		
-		//TODO 
-		SpeexEncoder spxEncoder = new SpeexEncoder();
-		SpeexDecoder spxDecoder = new SpeexDecoder();
-		spxEncoder.init(1, 8, 16000, 1);
-		spxDecoder.init(1, 16000, 1,true);
-		
+
 		try {
 			
-			byte[] buffer = new byte[640];
+			byte[] buffer = new byte[bufferSizeInBytes];
 			int count = 0;
 			while ((count = dataInputStreamInstance.read(buffer)) != -1) {
-				
-				//TODO 
-				Log.d("--->", "count--->"+count);
-				boolean processData = spxEncoder.processData(buffer, 0, count);
-				Log.d("--->", "processData--->"+processData);
-				byte[] encodedBuffer = new byte[spxEncoder.getProcessedDataByteSize()];
-				Log.d("--->", "getProcessedDataByteSize--->"+spxEncoder.getProcessedDataByteSize());
-				int encodedCount = spxEncoder.getProcessedData(encodedBuffer, 0);
-				Log.d("--->", "encodedCount--->"+encodedCount);
-				
-				spxDecoder.processData(encodedBuffer, 0, encodedCount);
+				spxDecoder.processData(buffer, 0, count);
 				byte[] decodedBuffer = new byte[spxDecoder.getProcessedDataByteSize()];
-				Log.d("===>", "getProcessedDataByteSize===>"+spxDecoder.getProcessedDataByteSize());
 				int decodedCount = spxDecoder.getProcessedData(decodedBuffer, 0);
-				Log.d("===>", "decodedCount===>"+decodedCount);
-				
-				audioTrack.write(decodedBuffer,0,decodedCount);
-				
-				//audioTrack.write(buffer,0,count);
+				audioTrack.write(decodedBuffer, 0, decodedCount);
 			}
-			
 			dataInputStreamInstance.close();
+			
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

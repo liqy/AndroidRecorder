@@ -33,7 +33,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: Lpc.java 3 2003-06-30 15:33:56Z mgimpel $ */
+/* $Id: Lpc.java 188 2006-07-09 14:08:12Z mgimpel $ */
 
 /*
   Copyright 1992, 1993, 1994 by Jutta Degener and Carsten Bormann,
@@ -89,29 +89,36 @@
 package org.xiph.speex;
 
 /**
- * LPC - and Reflection Coefficients
+ * LPC - and Reflection Coefficients.
  *
  * <p>The next two functions calculate linear prediction coefficients
  * and/or the related reflection coefficients from the first P_MAX+1
  * values of the autocorrelation function.
  * 
  * <p>Invented by N. Levinson in 1947, modified by J. Durbin in 1959.
+ * 
+ * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
+ * @version $Revision: 188 $
  */
 public class Lpc
 {
   /**
-   * Returns minimum mean square error
+   * Returns minimum mean square error.
    * @param lpc - float[0...p-1] LPC coefficients
    * @param ac -  in: float[0...p] autocorrelation values
    * @param ref - out: float[0...p-1] reflection coef's
    * @param p
+   * @return minimum mean square error.
    */
-  public static float wld(float[] lpc, float[] ac, float[] ref, int p)
+  public static float wld(final float[] lpc,
+                          final float[] ac,
+                          final float[] ref,
+                          final int p)
   {
     int i, j;
     float r, error = ac[0];
     if (ac[0] == 0) {
-      for (i=0; i<p; i++)
+      for (i = 0; i < p; i++)
         ref[i] = 0;
       return 0;
     }
@@ -122,10 +129,10 @@ public class Lpc
       ref[i] = r /= error;
       /*  Update LPC coefficients and total error. */
       lpc[i] = r;
-      for (j = 0; j < i/2; j++) {
+      for (j = 0; j < i / 2; j++) {
         float tmp  = lpc[j];
-        lpc[j]     += r * lpc[i-1-j];
-        lpc[i-1-j] += r * tmp;
+        lpc[j]         += r * lpc[i - 1 - j];
+        lpc[i - 1 - j] += r * tmp;
       }
       if ((i % 2) != 0)
         lpc[j] += lpc[j] * r;
@@ -145,13 +152,16 @@ public class Lpc
    * @param lag
    * @param n
    */
-  public static void autocorr(float[] x, float[] ac, int lag, int n)
+  public static void autocorr(final float[] x,
+                              final float[] ac,
+                              int lag,
+                              final int n)
   {
     float d;
     int i;
     while (lag-- > 0) {
-      for (i=lag, d=0; i<n; i++)
-        d += x[i] * x[i-lag];
+      for (i = lag, d = 0; i < n; i++)
+        d += x[i] * x[i - lag];
       ac[lag] = d;
     }
   }

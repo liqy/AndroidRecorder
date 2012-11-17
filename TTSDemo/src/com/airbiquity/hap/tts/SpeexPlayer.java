@@ -19,6 +19,8 @@ public class SpeexPlayer implements Runnable{
 	
 	private static final int mode = 1;
 	private static final int sampleRateInHz = 16000;
+	private static final int channels = 1;
+	
 	private static final int channelConfig = AudioFormat.CHANNEL_OUT_MONO;
 	private static final int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
 	
@@ -57,7 +59,7 @@ public class SpeexPlayer implements Runnable{
 			}
 		}
 		
-		spxDecoder.init(mode, sampleRateInHz, 1);
+		spxDecoder.init(mode, sampleRateInHz, channels,true);
 		
 		int bufferSizeInBytes = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, audioEncoding);
 		audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz, channelConfig, audioEncoding, 2 * bufferSizeInBytes, AudioTrack.MODE_STREAM);
@@ -65,15 +67,18 @@ public class SpeexPlayer implements Runnable{
 
 		try {
 			
-			byte[] buffer = new byte[1024];
-			
+			byte[] buffer = new byte[bufferSizeInBytes];
 			int count = 0;
 			while ((count = dataInputStreamInstance.read(buffer)) != -1) {
+				
+				Log.d("===>", "count===>"+count);
 				spxDecoder.processData(buffer, 0, count);
 				byte[] decodedBuffer = new byte[spxDecoder.getProcessedDataByteSize()];
-				count = spxDecoder.getProcessedData(decodedBuffer, 0);
-				//Log.d("TAG", new String(decodedBuffer, 0, count));
-				audioTrack.write(decodedBuffer, 0, count);
+				Log.d("===>", "getProcessedDataByteSize===>"+spxDecoder.getProcessedDataByteSize());
+				int decodedCount = spxDecoder.getProcessedData(decodedBuffer, 0);
+				Log.d("===>", "decodedCount===>"+decodedCount);
+				
+				audioTrack.write(decodedBuffer, 0, decodedCount);
 			}
 			dataInputStreamInstance.close();
 			
