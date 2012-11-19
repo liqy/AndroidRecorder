@@ -16,9 +16,10 @@ import android.os.Environment;
 
 public class SpxPlayer implements Runnable{
 	
-	private static final int mode = 1;
-	private static final int sampleRateInHz = 16000;
-	private static final int channels = 1;
+	private int mode = 1;
+	private int sampleRateInHz = 16000;
+	private int channels = 1;
+	private boolean enhanced = false;
 	
 	private static final int channelConfig = AudioFormat.CHANNEL_OUT_MONO;
 	private static final int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
@@ -44,6 +45,7 @@ public class SpxPlayer implements Runnable{
 	
 	public SpxPlayer(InputStream is){
 		this.dataInputStreamInstance = new DataInputStream(is);
+		spxDecoder = new SpeexDecoder();
 	}
 
 	public void run() {
@@ -58,7 +60,7 @@ public class SpxPlayer implements Runnable{
 			}
 		}
 		
-		spxDecoder.init(mode, sampleRateInHz, channels,true);
+		spxDecoder.init(mode, sampleRateInHz, channels, enhanced);
 		
 		int bufferSizeInBytes = AudioTrack.getMinBufferSize(sampleRateInHz, channelConfig, audioEncoding);
 		audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz, channelConfig, audioEncoding, 2 * bufferSizeInBytes, AudioTrack.MODE_STREAM);
@@ -103,5 +105,37 @@ public class SpxPlayer implements Runnable{
 		synchronized (mutex) {
 			return isPlaying;
 		}
+	}
+	
+	/**
+	 * set the mode 
+	 * @param mode
+	 */
+	public void setMode(int mode) {
+		this.mode = mode;
+	}
+
+	/**
+	 * set sample rate of the audio file.
+	 * @param sampleRateInHz  default 16000
+	 */
+	public void setSampleRateInHz(int sampleRateInHz) {
+		this.sampleRateInHz = sampleRateInHz;
+	}
+
+	/**
+	 * set the channels of the speex audio 1 MONO 2 STEREO
+	 * @param channels
+	 */
+	public void setChannels(int channels) {
+		this.channels = channels;
+	}
+
+	/**
+	 * Set if is enhanced for the speex decoder. 
+	 * @param enhanced true or false
+	 */
+	public void setEnhanced(boolean enhanced) {
+		this.enhanced = enhanced;
 	}
 }

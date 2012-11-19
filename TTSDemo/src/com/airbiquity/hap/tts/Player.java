@@ -7,14 +7,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.xiph.speex.SpeexDecoder;
-import org.xiph.speex.SpeexEncoder;
-
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Environment;
-import android.util.Log;
 
 public class Player implements Runnable{
 	
@@ -57,11 +53,11 @@ public class Player implements Runnable{
 		audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz, channelConfig, audioEncoding, 2 * bufferSizeInBytes, AudioTrack.MODE_STREAM);
 		audioTrack.play();
 		
-		//TODO 
-		SpeexEncoder spxEncoder = new SpeexEncoder();
-		SpeexDecoder spxDecoder = new SpeexDecoder();
-		spxEncoder.init(1, 8, 16000, 1);
-		spxDecoder.init(1, 16000, 1,true);
+		// TODO
+		// SpeexEncoder spxEncoder = new SpeexEncoder();
+		// SpeexDecoder spxDecoder = new SpeexDecoder();
+		// spxEncoder.init(1, 8, 16000, 1);
+		// spxDecoder.init(1, 16000, 1,true);
 		
 		try {
 			
@@ -70,23 +66,30 @@ public class Player implements Runnable{
 			while ((count = dataInputStreamInstance.read(buffer)) != -1) {
 				
 				//TODO 
-				Log.d("--->", "count--->"+count);
-				boolean processData = spxEncoder.processData(buffer, 0, count);
-				Log.d("--->", "processData--->"+processData);
-				byte[] encodedBuffer = new byte[spxEncoder.getProcessedDataByteSize()];
-				Log.d("--->", "getProcessedDataByteSize--->"+spxEncoder.getProcessedDataByteSize());
-				int encodedCount = spxEncoder.getProcessedData(encodedBuffer, 0);
-				Log.d("--->", "encodedCount--->"+encodedCount);
+				// Log.d("--->", "count--->"+count);
+				// boolean processData = spxEncoder.processData(buffer, 0,
+				// count);
+				// Log.d("--->", "processData--->"+processData);
+				// byte[] encodedBuffer = new
+				// byte[spxEncoder.getProcessedDataByteSize()];
+				// Log.d("--->",
+				// "getProcessedDataByteSize--->"+spxEncoder.getProcessedDataByteSize());
+				// int encodedCount = spxEncoder.getProcessedData(encodedBuffer,
+				// 0);
+				// Log.d("--->", "encodedCount--->"+encodedCount);
+				//
+				// spxDecoder.processData(encodedBuffer, 0, encodedCount);
+				// byte[] decodedBuffer = new
+				// byte[spxDecoder.getProcessedDataByteSize()];
+				// Log.d("===>",
+				// "getProcessedDataByteSize===>"+spxDecoder.getProcessedDataByteSize());
+				// int decodedCount = spxDecoder.getProcessedData(decodedBuffer,
+				// 0);
+				// Log.d("===>", "decodedCount===>"+decodedCount);
+				//
+				// audioTrack.write(decodedBuffer,0,decodedCount);
 				
-				spxDecoder.processData(encodedBuffer, 0, encodedCount);
-				byte[] decodedBuffer = new byte[spxDecoder.getProcessedDataByteSize()];
-				Log.d("===>", "getProcessedDataByteSize===>"+spxDecoder.getProcessedDataByteSize());
-				int decodedCount = spxDecoder.getProcessedData(decodedBuffer, 0);
-				Log.d("===>", "decodedCount===>"+decodedCount);
-				
-				audioTrack.write(decodedBuffer,0,decodedCount);
-				
-				//audioTrack.write(buffer,0,count);
+				audioTrack.write(buffer,0,count);
 			}
 			
 			dataInputStreamInstance.close();

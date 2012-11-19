@@ -6,13 +6,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.xiph.speex.OggSpeexWriter;
+import org.xiph.speex.PcmWaveWriter;
 import org.xiph.speex.SpeexEncoder;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Environment;
-import android.util.Log;
 
 public class SpeexRecorder implements Runnable {
 
@@ -25,9 +26,11 @@ public class SpeexRecorder implements Runnable {
 	private static final int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
 	private final Object mutex = new Object();
 	private volatile boolean isRecording = false;
+	
 	private DataOutputStream dataOutputStreamInstance = null;
-
-	// private OggSpeexWriter oggSpxWriter = null;
+	private OggSpeexWriter oggSpxWriter = null;
+	private PcmWaveWriter pcmWriter =null;
+	
 	private SpeexEncoder spxEncoder = null;
 
 	public SpeexRecorder() {
@@ -44,6 +47,12 @@ public class SpeexRecorder implements Runnable {
 			// bufferedStreamInstance = new BufferedOutputStream(new
 			// FileOutputStream(pcmFile));
 			dataOutputStreamInstance = new DataOutputStream(new FileOutputStream(pcmFile));
+			
+			pcmWriter = new PcmWaveWriter(16000,1);
+			pcmWriter.open(Environment.getExternalStorageDirectory() + "/test.wav");
+			
+			oggSpxWriter = new OggSpeexWriter(1,16000,1,1,true);
+			oggSpxWriter.open(Environment.getExternalStorageDirectory() + "/test.ogg");
 
 			// oggSpxWriter = new OggSpeexWriter();
 			// oggSpxWriter.open(Environment.getExternalStorageDirectory() +
@@ -71,8 +80,7 @@ public class SpeexRecorder implements Runnable {
 			}
 		}
 
-		android.os.Process
-				.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+		android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
 		// Initialize AudioRecord, make it ready for record.
 		int bufferRead = 0;
@@ -82,7 +90,17 @@ public class SpeexRecorder implements Runnable {
 		recordInstance.startRecording();
 
 		spxEncoder.init(mode, quality, 44100, channels);
-
+		try {
+			pcmWriter.writeHeader("pcm audio");
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		
+		try {
+			oggSpxWriter.writeHeader("ogg speex");
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 
 		// try {
 		// oggSpxWriter.writeHeader();
@@ -111,17 +129,24 @@ public class SpeexRecorder implements Runnable {
 			try {
 				
 				// encode with speex
-				Log.d("--->", "bufferRead--->" + bufferRead);
-				boolean processData = spxEncoder.processData(tempBuffer, 0,bufferRead);
+//				Log.d("--->", "bufferRead--->" + bufferRead);
+				spxEncoder.processData(tempBuffer, 0,bufferRead);
 				byte[] encodedBuffer = new byte[spxEncoder.getProcessedDataByteSize()];
-				Log.d("--->",
-						"getProcessedDataByteSize--->"
-								+ spxEncoder.getProcessedDataByteSize());
+//				Log.d("--->",
+//						"getProcessedDataByteSize--->"
+//								+ spxEncoder.getProcessedDataByteSize());
 				int encodedCount = spxEncoder.getProcessedData(encodedBuffer, 0);
-				Log.d("--->", "encodedCount--->" + encodedCount);
-				dataOutputStreamInstance.write(encodedBuffer, 0, encodedCount);
+//				Log.d("--->", "encodedCount--->" + encodedCount);
+//				dataOutputStreamInstance.write(encodedBuffer, 0, encodedCount);
+			
+				dataOutputStreamInstance.write(tempBuffer, 0, bufferRead);
+				
+				// write wav file
+				pcmWriter.writePacket(tempBuffer, 0	, bufferRead);
+				
 				// write speex to the file
-				// oggSpxWriter.writePacket(tempBuffer, 0, bufferRead);
+			    oggSpxWriter.writePacket(encodedBuffer, 0, encodedCount);
+				
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -130,13 +155,12 @@ public class SpeexRecorder implements Runnable {
 
 		recordInstance.stop();
 
-		// try {
-		// oggSpxWriter.flush(true);
-		// oggSpxWriter.close();
-		// } catch (IOException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
+		 try {
+			 pcmWriter.close();
+			 oggSpxWriter.close();
+		 } catch (IOException e) {
+			 e.printStackTrace();
+		 }
 
 		try {
 			dataOutputStreamInstance.close();
