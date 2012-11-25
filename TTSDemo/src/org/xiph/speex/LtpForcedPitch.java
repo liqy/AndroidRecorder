@@ -34,7 +34,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: LtpForcedPitch.java 188 2006-07-09 14:08:12Z mgimpel $ */
+/* $Id: LtpForcedPitch.java,v 1.2 2004/10/21 16:21:57 mgimpel Exp $ */
 
 /* Copyright (C) 2002 Jean-Marc Valin 
 
@@ -73,7 +73,7 @@ package org.xiph.speex;
  * 
  * @author Jim Lawrence, helloNetwork.com
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 188 $
+ * @version $Revision: 1.2 $
  */
 public class LtpForcedPitch
   extends Ltp
@@ -87,10 +87,10 @@ public class LtpForcedPitch
                          int nsf, Bits bits, float[] exc2, int e2s, float[] r, int complexity)
   {
     int i;
-    if (pitch_coef > .99f)
-      pitch_coef = .99f;
-    for (i = 0; i < nsf; i++) {
-      exc[es + i] = exc[es + i - start] * pitch_coef;
+    if (pitch_coef>.99f)
+      pitch_coef=.99f;
+    for (i=0;i<nsf;i++) {
+      exc[es+i]=exc[es+i-start]*pitch_coef;
     }
     return start;
   }
@@ -114,11 +114,11 @@ public class LtpForcedPitch
                            int count_lost, int subframe_offset, float last_pitch_gain)
   {
     int i;
-    if (pitch_coef > .99f) {
-      pitch_coef = .99f;
+    if (pitch_coef>.99f) {
+      pitch_coef=.99f;
     }
-    for (i = 0; i < nsf; i++) {
-      exc[es + i] = exc[es + i - start] * pitch_coef;
+    for (i=0;i<nsf;i++) {
+      exc[es+i]=exc[es+i-start]*pitch_coef;
     }
     gain_val[0] = gain_val[2] = 0;
     gain_val[1] = pitch_coef;

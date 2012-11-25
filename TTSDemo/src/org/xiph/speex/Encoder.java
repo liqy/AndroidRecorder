@@ -33,7 +33,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: Encoder.java 188 2006-07-09 14:08:12Z mgimpel $ */
+/* $Id: Encoder.java,v 1.2 2004/10/21 16:21:57 mgimpel Exp $ */
 
 /* Copyright (C) 2002 Jean-Marc Valin 
 
@@ -72,7 +72,7 @@ package org.xiph.speex;
  * encoders.
  * 
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 188 $
+ * @version $Revision: 1.2 $
  */
 public interface Encoder
 {
@@ -98,21 +98,21 @@ public interface Encoder
    * Returns the size of a frame.
    * @return the size of a frame.
    */
-  public int getFrameSize();
+  public int  getFrameSize();
 
   /**
    * Sets the Quality (between 0 and 10).
    * @param quality - the desired Quality (between 0 and 10).
    */
-  public void setQuality(int quality);
+  public void    setQuality(int quality);
 
   /**
    * Get the current Bit Rate.
    * @return the current Bit Rate.
    */
-  public int getBitRate();
+  public int     getBitRate();
 
-//  public void resetState();
+//  public void    resetState();
 
   /**
    * Returns the Pitch Gain array.

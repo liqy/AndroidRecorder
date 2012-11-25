@@ -34,7 +34,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: Bits.java 188 2006-07-09 14:08:12Z mgimpel $ */
+/* $Id: Bits.java,v 1.2 2004/10/21 16:21:57 mgimpel Exp $ */
 
 /* Copyright (C) 2002 Jean-Marc Valin 
 
@@ -73,7 +73,7 @@ package org.xiph.speex;
  * 
  * @author Jim Lawrence, helloNetwork.com
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 188 $
+ * @version $Revision: 1.2 $
  */
 public class Bits
 {
@@ -107,8 +107,8 @@ public class Bits
   {
     bytePtr += n >> 3;
     bitPtr += n & 7;
-    if (bitPtr > 7) {
-      bitPtr -= 8;
+    if (bitPtr>7) {
+      bitPtr-=8;
       bytePtr++;
     }
   }
@@ -128,7 +128,7 @@ public class Bits
    */
   public int peek()
   {
-    return ((bytes[bytePtr] & 0xFF) >> (7 - bitPtr)) & 1;
+    return ((bytes[bytePtr] & 0xFF) >> (7-bitPtr)) & 1;
   }
 
   /**
@@ -141,10 +141,10 @@ public class Bits
                         final int offset,
                         final int len)
   {
-    for (int i = 0; i < len; i++)
-      bytes[i] = newbytes[offset + i];
-    bytePtr = 0;
-    bitPtr = 0;
+    for (int i=0; i<len; i++)
+      bytes[i]=newbytes[offset+i];
+    bytePtr=0;
+    bitPtr=0;
   }
 
   /**
@@ -154,13 +154,13 @@ public class Bits
    */
   public int unpack(int nbBits)  
   {
-    int d = 0;
-    while (nbBits != 0) {
-      d <<= 1;
-      d |= ((bytes[bytePtr] & 0xFF) >> (7 - bitPtr)) & 1;
+    int d=0;
+    while (nbBits!=0) {
+      d<<=1;
+      d |= ((bytes[bytePtr] & 0xFF)>>(7-bitPtr))&1;
       bitPtr++;
-      if (bitPtr == 8) {
-        bitPtr = 0;
+      if (bitPtr==8) {
+        bitPtr=0;
         bytePtr++;
       }
       nbBits--;
@@ -180,19 +180,19 @@ public class Bits
     while (bytePtr+((nbBits+bitPtr)>>3) >= bytes.length) {
       // System.err.println("Buffer too small to pack bits");
       /* Expand the buffer as needed. */
-      int size = bytes.length * 2;
+      int size = bytes.length*2;
       byte[] tmp = new byte[size];
       System.arraycopy(bytes, 0, tmp, 0, bytes.length);
       bytes = tmp;
     }
-    while (nbBits > 0) {
+    while (nbBits>0) {
       int bit;
-      bit = (d >> (nbBits - 1)) & 1;
-      bytes[bytePtr] |= bit << (7 - bitPtr);
+      bit = (d>>(nbBits-1))&1;
+      bytes[bytePtr] |= bit<<(7-bitPtr);
       bitPtr++;
-      if (bitPtr == 8)
+      if (bitPtr==8)
       {
-        bitPtr = 0;
+        bitPtr=0;
         bytePtr++;
       }
       nbBits--;

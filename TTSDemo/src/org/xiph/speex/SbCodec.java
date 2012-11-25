@@ -33,7 +33,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: SbCodec.java 188 2006-07-09 14:08:12Z mgimpel $ */
+/* $Id: SbCodec.java,v 1.2 2004/10/21 16:21:57 mgimpel Exp $ */
 
 package org.xiph.speex;
 
@@ -43,7 +43,7 @@ package org.xiph.speex;
  * encoder and decoder.
  * 
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 188 $
+ * @version $Revision: 1.2 $
  */
 public class SbCodec
   extends NbCodec
@@ -193,8 +193,8 @@ public class SbCodec
   {
     int i;
     float[] excTmp = new float[fullFrameSize];
-    for (i = 0; i < frameSize; i++)
-      excTmp[2 * i] = 2.0f * excBuf[excIdx + i];
+    for (i=0;i<frameSize;i++)
+      excTmp[2*i]=2*excBuf[excIdx+i];
     return excTmp;
   }
 

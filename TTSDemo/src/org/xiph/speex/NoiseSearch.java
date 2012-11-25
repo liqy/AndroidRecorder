@@ -34,7 +34,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: NoiseSearch.java 188 2006-07-09 14:08:12Z mgimpel $ */
+/* $Id: NoiseSearch.java,v 1.2 2004/10/21 16:21:57 mgimpel Exp $ */
 
 /* Copyright (C) 2002 Jean-Marc Valin 
 
@@ -73,7 +73,7 @@ package org.xiph.speex;
  * 
  * @author Jim Lawrence, helloNetwork.com
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 188 $
+ * @version $Revision: 1.2 $
  */
 public class NoiseSearch
   extends CbSearch
@@ -100,10 +100,10 @@ public class NoiseSearch
     float[] tmp=new float[nsf];
     Filters.residue_percep_zero(target, 0, ak, awk1, awk2, tmp, nsf, p);
 
-    for (i = 0; i < nsf; i++)
-      exc[es + i] += tmp[i];
-    for (i = 0; i < nsf; i++)
-      target[i] = 0;
+    for (i=0;i<nsf;i++)
+      exc[es+i]+=tmp[i];
+    for (i=0;i<nsf;i++)
+      target[i]=0;
   }
 
   /**
@@ -116,7 +116,7 @@ public class NoiseSearch
   public final void unquant(float[] exc, int es, int nsf, Bits bits)
   {
     for (int i=0; i<nsf; i++) {
-      exc[es+i] += (float) (3.0 * (Math.random() - .5));
+      exc[es+i]+= (float) (3.0*(Math.random()-.5));
     }
   }
 }

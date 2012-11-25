@@ -12,7 +12,7 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Environment;
 
-public class Recorder implements Runnable {
+public class PcmRecorder implements Runnable {
 	
 	private static final int sampleRateInHz = 16000;
 	private static final int channelConfig = AudioFormat.CHANNEL_IN_MONO;
@@ -22,7 +22,7 @@ public class Recorder implements Runnable {
 	private volatile boolean isRecording = false;
 	private DataOutputStream dataOutputStreamInstance = null;
 
-	public Recorder() {
+	public PcmRecorder() {
 		
 		try {
 			File pcmFile = new File(Environment.getExternalStorageDirectory() + "/test.pcm");

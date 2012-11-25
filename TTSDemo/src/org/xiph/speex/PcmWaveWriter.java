@@ -33,7 +33,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: PcmWaveWriter.java 188 2006-07-09 14:08:12Z mgimpel $ */
+/* $Id: PcmWaveWriter.java,v 1.2 2004/10/21 16:21:57 mgimpel Exp $ */
 
 package org.xiph.speex;
 
@@ -57,13 +57,13 @@ import java.io.RandomAccessFile;
  *
  * @author Jim Lawrence, helloNetwork.com
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 188 $
+ * @version $Revision: 1.2 $
  */
 public class PcmWaveWriter
   extends AudioFileWriter
 {
   /** Wave type code of PCM */
-  public static final short WAVE_FORMAT_PCM   = (short) 0x01;
+  public static final short WAVE_FORMAT_PCM = (short) 0x01;
   /** Wave type code of Speex */
   public static final short WAVE_FORMAT_SPEEX = (short) 0xa109;
 

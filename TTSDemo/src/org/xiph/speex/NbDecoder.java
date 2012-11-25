@@ -34,7 +34,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: NbDecoder.java 188 2006-07-09 14:08:12Z mgimpel $ */
+/* $Id: NbDecoder.java,v 1.3 2005/05/27 13:16:27 mgimpel Exp $ */
 
 /* Copyright (C) 2002 Jean-Marc Valin 
 
@@ -76,7 +76,7 @@ import java.util.Random;
  * 
  * @author Jim Lawrence, helloNetwork.com
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 188 $
+ * @version $Revision: 1.3 $
  */
 public class NbDecoder
   extends NbCodec
@@ -527,7 +527,7 @@ public class NbDecoder
     if (pitch_gain>.95f)
       pitch_gain=.95f;
 
-    pitch_gain = pitch_gain * fact + VERY_SMALL;
+    pitch_gain *= fact;
    
     /* Shift all buffers by one frame */
     System.arraycopy(frmBuf, frameSize, frmBuf, 0, bufSize-frameSize);
@@ -578,14 +578,12 @@ public class NbDecoder
 //          /*rand();*/
 //#else
           /*excBuf[extIdx+i] = pitch_gain*excBuf[extIdx+i-last_pitch] + fact*innov[i+offset];*/
-          excBuf[extIdx+i] = pitch_gain * (excBuf[extIdx + i - last_pitch] + VERY_SMALL) +
-                             fact * ((float)Math.sqrt(1 - pitch_gain)) *
-                             3 * innov_gain * ((random.nextFloat()) - 0.5f);
+          excBuf[extIdx+i] = pitch_gain*excBuf[extIdx+i-last_pitch] + fact*((float)Math.sqrt(1-pitch_gain))*3*innov_gain*((random.nextFloat())-0.5f);
 //#endif
         }
       }
       for (i=0;i<subframeSize;i++)
-        frmBuf[spIdx+i] = excBuf[extIdx+i] + VERY_SMALL;
+        frmBuf[spIdx+i]=excBuf[extIdx+i];
 
       /* Signal synthesis */
       if (enhanced) {

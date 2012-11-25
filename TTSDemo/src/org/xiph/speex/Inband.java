@@ -32,7 +32,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: Inband.java 188 2006-07-09 14:08:12Z mgimpel $ */
+/* $Id: Inband.java,v 1.2 2004/10/21 16:21:57 mgimpel Exp $ */
 
 package org.xiph.speex;
 
@@ -42,7 +42,7 @@ import java.io.StreamCorruptedException;
  * Speex in-band and User in-band controls.
  * 
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 188 $
+ * @version $Revision: 1.2 $
  */
 public class Inband
 {
@@ -129,6 +129,6 @@ public class Inband
     throws StreamCorruptedException
   {
     int req_size = bits.unpack(4);
-    bits.advance(5 + 8 * req_size);
+    bits.advance(5+8*req_size);
   }
 }

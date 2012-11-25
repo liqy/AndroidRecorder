@@ -34,7 +34,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: SpeexDecoder.java 188 2006-07-09 14:08:12Z mgimpel $ */
+/* $Id: SpeexDecoder.java,v 1.4 2005/05/27 13:15:54 mgimpel Exp $ */
 
 /* Copyright (C) 2002 Jean-Marc Valin 
 
@@ -84,14 +84,14 @@ import java.io.StreamCorruptedException;
  * 
  * @author Jim Lawrence, helloNetwork.com
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 188 $
+ * @version $Revision: 1.4 $
  */
 public class SpeexDecoder
 {
   /**
    * Version of the Speex Decoder
    */
-  public static final String VERSION = "Java Speex Decoder v0.9.7 ($Revision: 188 $)";
+  public static final String VERSION = "Java Speex Decoder v0.9.7 ($Revision: 1.4 $)";
 
   private int     sampleRate;
   private int     channels;
@@ -150,9 +150,9 @@ public class SpeexDecoder
     this.frameSize  = decoder.getFrameSize();
     this.sampleRate = sampleRate;
     this.channels   = channels;
-    int secondSize  = sampleRate * channels;
-    decodedData     = new float[secondSize * 2];
-    outputData      = new short[secondSize * 2];
+    int secondSize  = sampleRate*channels;
+    decodedData     = new float[secondSize*2];
+    outputData      = new short[secondSize*2];
     outputSize      = 0;
     bits.init();
     return true;
@@ -191,7 +191,7 @@ public class SpeexDecoder
     for (int i=0; i<outputSize; i++) {
       int dx     =  offset + (i<<1);
       data[dx]   = (byte) (outputData[i] & 0xff);
-      data[dx+1] = (byte) ((outputData[i] >> 8) & 0xff );
+      data[dx+1] = (byte) ((outputData[i] >> 8) &  0xff );
     }
     int size = outputSize*2;
     outputSize = 0;
@@ -222,7 +222,7 @@ public class SpeexDecoder
    */
   public int getProcessedDataByteSize() 
   {
-    return (outputSize * 2);
+    return (outputSize*2);
   }
   
   /**
@@ -267,17 +267,17 @@ public class SpeexDecoder
 
     /* PCM saturation */
     for (i=0; i<frameSize*channels; i++) {
-      if (decodedData[i] > 32767.0f)
-        decodedData[i] = 32767.0f;
-      else if (decodedData[i] < -32768.0f)
-        decodedData[i] = -32768.0f;
+      if (decodedData[i]>32767.0f)
+        decodedData[i]=32767.0f;
+      else if (decodedData[i]<-32768.0f)
+        decodedData[i]=-32768.0f;
     }
 
     /* convert to short and save to buffer */
-    for (i = 0; i < frameSize * channels; i++, outputSize++) {
-      outputData[outputSize] = (decodedData[i] > 0) ?
-                               (short) (decodedData[i] + 0.5f) :
-                               (short) (decodedData[i] - 0.5f);
+    for (i=0; i<frameSize*channels; i++, outputSize++) {
+      outputData[outputSize] = (decodedData[i]>0) ?
+                               (short) (decodedData[i]+.5) :
+                               (short) (decodedData[i]-.5);
     } 
   }
 }

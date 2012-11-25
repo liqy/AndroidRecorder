@@ -1,19 +1,22 @@
 package com.airbiquity.hap.tts;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.xiph.speex.SpeexDecoder;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -22,216 +25,238 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 public class MainActivity extends Activity {
-	
-	private Button mStart;
-	private Button mPlay;
-	private Button mTts;
+
+	private Button mPcmRecorderBtn;
+	private Button mPcmPlayerBtn;
+	private Button mPcmTts;
+
 	private Button mSpxEncoder;
 	private Button mSpxDecoder;
-	
-	private Recorder recorder ;
-	private Player player ;
-	
+
+	private PcmRecorder mPcmRecorder;
+	private PcmPlayer mPcmPlayer;
+
 	private SpeexRecorder spxRecorder;
 	private SpeexPlayer spxPlayer;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-    	
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        
-        mStart = (Button) findViewById(R.id.start);
-        mPlay = (Button) findViewById(R.id.play);
-        mTts = (Button) findViewById(R.id.tts);
-        mSpxEncoder = (Button) findViewById(R.id.speexEncoder);
-        mSpxDecoder = (Button) findViewById(R.id.speexDecoder);
-        
-		mSpxEncoder.setOnClickListener(new OnClickListener() {
+	// http://nissanmipdevgw.airbiquity.com:9018/mip_services/core/api/1.0/speech/text_to_speech?device_id=1234567890124212&language=en_US&accept_format=audio%2Fx-speex%3Brate%3D16000
+	private final static String BASE_URL = "http://nissanmipdevgw.airbiquity.com:9018/";
+	private final static String TTS_SERVICE = "mip_services/core/api/1.0/speech/text_to_speech";
+	private final static String Language = "en_US";
+	private final static String Accept_Format = "audio%2Fx-speex%3Brate%3D16000";
+	private final static String MIP_ID = "1234";
+	private final static String Content_Type = "text/plain";
+	private final static String Input_Text = "how are you doing?This needs more information. ";
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+
+		mPcmRecorderBtn = (Button) findViewById(R.id.pcm_recorder);
+		mPcmPlayerBtn = (Button) findViewById(R.id.pcm_player);
+		mPcmTts = (Button) findViewById(R.id.pcm_tts);
+
+		mSpxEncoder = (Button) findViewById(R.id.speexEncoder);
+		mSpxDecoder = (Button) findViewById(R.id.speexDecoder);
+
+		mPcmRecorderBtn.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
-				
-				spxRecorder = new SpeexRecorder();
-				new Thread(spxRecorder).start();
-				spxRecorder.setRecording(true);
-				
-				AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+				mPcmRecorder = new PcmRecorder();
+				new Thread(mPcmRecorder).start();
+
+				mPcmRecorder.setRecording(true);
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						MainActivity.this);
 				ProgressBar pb = new ProgressBar(MainActivity.this);
 				builder.setTitle("Please Speaking");
 				builder.setView(pb);
-				builder.setPositiveButton("Finish", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						if(spxRecorder.isRecording()){
-							spxRecorder.setRecording(false);
-						}
-					}
-				});
-				builder.show();
-
-			}
-		});
-		
-		mSpxDecoder.setOnClickListener(new OnClickListener() {
-
-			public void onClick(View v) {
-				
-					spxPlayer = new SpeexPlayer();
-					new Thread(spxPlayer).start();
-					spxPlayer.setPlaying(true);
-					
-					AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-					ProgressBar pb = new ProgressBar(MainActivity.this);
-					builder.setTitle("Playing");
-					
-					builder.setView(pb);
-					builder.setPositiveButton("close", new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							if(spxPlayer.isPlaying()){
-								spxPlayer.setPlaying(false);
+				builder.setPositiveButton("Finish",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								if (mPcmRecorder.isRecording()) {
+									mPcmRecorder.setRecording(false);
+								}
 							}
-						}
-					});
-					builder.show();
-				}
-
-		});
-        
-		mStart.setOnClickListener(new OnClickListener() {
-
-			public void onClick(View v) {
-				recorder = new Recorder();
-				new Thread(recorder).start();
-				recorder.setRecording(true);
-				
-				AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-				ProgressBar pb = new ProgressBar(MainActivity.this);
-				builder.setTitle("Please Speaking");
-				builder.setView(pb);
-				builder.setPositiveButton("Finish", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						if(recorder.isRecording()){
-							recorder.setRecording(false);
-						}
-					}
-				});
+						});
 				builder.show();
 			}
 		});
-		
-		mPlay.setOnClickListener(new OnClickListener() {
+
+		mPcmPlayerBtn.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
-				player = new Player();
-				new Thread(player).start();
-				player.setPlaying(true);
-				
-				AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+				mPcmPlayer = new PcmPlayer();
+				new Thread(mPcmPlayer).start();
+				mPcmPlayer.setPlaying(true);
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						MainActivity.this);
 				ProgressBar pb = new ProgressBar(MainActivity.this);
 				builder.setTitle("Playing");
-				
 				builder.setView(pb);
-				builder.setPositiveButton("close", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						if(player.isPlaying()){
-							player.setPlaying(false);
-						}
-					}
-				});
+				builder.setPositiveButton("close",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								if (mPcmPlayer.isPlaying()) {
+									mPcmPlayer.setPlaying(false);
+								}
+							}
+						});
 				builder.show();
 			}
 		});
-        
-		
-		mTts.setOnClickListener(new OnClickListener() {
+
+		mPcmTts.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
-				
+
+				TelephonyManager TelephonyMgr = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+				String device_id = TelephonyMgr.getDeviceId();
+				Log.d("TAG", device_id);
+
+//				String accpet_format = URLEncoder
+//						.encode("audio/x-wav;codec=pcm;bit=16;rate=16000");
+				 String accpet_format =
+				 URLEncoder.encode("audio/x-speex;rate=16000");
+				Log.d("TAG", accpet_format);
+				Log.d("TAG", Accept_Format);
+
 				HttpClient client = new DefaultHttpClient();
 				try {
-					  
-					
-					StringBuffer uri = new StringBuffer();
-				 	uri.append(TTS_SERVICE)
-					   .append(MIP_ID)
-					   .append("?")
-					   .append("deviceId=")
-					   .append(Device_ID)
-					   .append("&ttsLang=")
-					   .append(TTS_Lang)
-					   .append("&acceptFormat=")
-					   .append(Accept_Format)
-					   .append("&inputText=")
-					   .append(Input_Text);
-				 	
-				 	Log.d("TAG", uri.toString());
-				 	String encodedUri = URLEncoder.encode(uri.toString());
-				 	Log.d("TAG", encodedUri);  
-					  
-				 	StringBuffer  sb = new StringBuffer();
-				 	sb.append(BASE_URL).append(encodedUri);
-					Log.d("TAG", sb.toString());  
-					  
-					
-					
-					HttpPost request = new HttpPost(sb.toString());
+					StringBuffer url = new StringBuffer();
+					url.append(BASE_URL).append(TTS_SERVICE).append("?")
+							.append("device_id=").append(device_id)
+							.append("&language=").append(Language)
+							.append("&accept_format=").append(accpet_format);
+
+					Log.d("TAG", url.toString());
+					HttpPost request = new HttpPost(url.toString());
 					request.setHeader("mip-id", MIP_ID);
+					request.setHeader("Content-Type", Content_Type);
+
+					request.setEntity(new StringEntity(Input_Text, "UTF-8"));
 					HttpResponse response = client.execute(request);
+
 					int statusCode = response.getStatusLine().getStatusCode();
-					
-					Log.d("TAG", "status = "+statusCode);
-					String reasonPhrase = response.getStatusLine().getReasonPhrase();
-					Log.d("TAG", "reasonPhrase = "+reasonPhrase);
-					long contentLength = response.getEntity().getContentLength();
-					Log.d("TAG", "contentLength = "+contentLength);
-//					InputStream is= response.getEntity().getContent();
-//					byte[] b = new byte[1024];
-//					int count = 0;
-//					while((count = is.read(b))!=-1){
-//						Log.d("TAG", new String(b,0,count));
-//					}
-					
-					SpeexDecoder  speexDecoder = new SpeexDecoder();
-					
-					
-					
-					
+
+					Log.d("TAG", "status = " + statusCode);
+
+					HttpEntity entity = response.getEntity();
+					if (entity != null) {
+
+						InputStream content = entity.getContent();
+						
+						OggPlayer oggPlayer = new OggPlayer(content);
+						new Thread(oggPlayer).start();
+						oggPlayer.setPlaying(true);
+
+						// SpxPlayer spxPlayer = new SpxPlayer(content);
+						// new Thread(spxPlayer).start();
+						// spxPlayer.setPlaying(true);
+
+						// PcmWriter pcmPlayer = new PcmWriter();
+						// new Thread(pcmPlayer).start();
+						// pcmPlayer.setPlaying(true);
+
+						// try {
+						//
+						// int all = 0;
+						// byte[] b = new byte[8092];
+						// int count = 0;
+						// while((count = content.read(b))!=-1){
+						// Log.d("TAG", new String(b,0,count));
+						// all += count;
+						// Log.d("TAG", "count = "+count);
+						// Log.d("TAG", "all = "+all);
+						// pcmPlayer.putData(b, count);
+						// }
+						// pcmPlayer.setPlaying(false);
+						// Log.d("--->", "total count = "+all+"");
+						// } catch (IllegalArgumentException e) {
+						// e.printStackTrace();
+						// } catch (IllegalStateException e) {
+						// e.printStackTrace();
+						// }
+
+					}
+
 				} catch (ClientProtocolException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
 					e.printStackTrace();
-				}finally{
+				} finally {
 					client.getConnectionManager().closeExpiredConnections();
 				}
-				
 
 			}
 		});
-		
+
+		mSpxEncoder.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View v) {
+
+				spxRecorder = new SpeexRecorder();
+				new Thread(spxRecorder).start();
+				spxRecorder.setRecording(true);
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						MainActivity.this);
+				ProgressBar pb = new ProgressBar(MainActivity.this);
+				builder.setTitle("Please Speaking");
+				builder.setView(pb);
+				builder.setPositiveButton("Finish",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								if (spxRecorder.isRecording()) {
+									spxRecorder.setRecording(false);
+								}
+							}
+						});
+				builder.show();
+
+			}
+		});
+
+		mSpxDecoder.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View v) {
+
+				spxPlayer = new SpeexPlayer();
+				new Thread(spxPlayer).start();
+				spxPlayer.setPlaying(true);
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						MainActivity.this);
+				ProgressBar pb = new ProgressBar(MainActivity.this);
+				builder.setTitle("Playing");
+
+				builder.setView(pb);
+				builder.setPositiveButton("close",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								if (spxPlayer.isPlaying()) {
+									spxPlayer.setPlaying(false);
+								}
+							}
+						});
+				builder.show();
+			}
+
+		});
+
 	}
-    
-    private final static String BASE_URL = "http://nissanmipdevtas.airbiquity.com:9016/";
-    private final static String ACCOUNT_SERVICE = "account_services/api/1.0/";
-    
-    private final static String MIP_ID = "17bc2e45-2f4a-11e2-bea7-356cf6254872";
-    
-    private final static String ACCOUNT_MGR = "acocount";
-    private final static String LOGIN = "login";
-    
-    private final static String TTS_SERVICE = "mip_services/core/api/1.0/voice/tts/mipId/";
-    private final static String Device_ID = "1234567890124212";
-    private final static String TTS_Lang = "en_US";
-    private final static String Accept_Format = "audio/x-speex;rate=8000";
-    private final static String Input_Text = "how are you doing";
-    
-    
-    
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_main, menu);
-        return true;
-    }
-    
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.activity_main, menu);
+		return true;
+	}
 
-	
 }

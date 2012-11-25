@@ -32,7 +32,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: OggSpeexWriter.java 188 2006-07-09 14:08:12Z mgimpel $ */
+/* $Id: OggSpeexWriter.java,v 1.2 2004/10/21 16:21:57 mgimpel Exp $ */
 
 package org.xiph.speex;
 
@@ -46,7 +46,7 @@ import java.util.Random;
  * Ogg Speex Writer
  * 
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 188 $
+ * @version $Revision: 1.2 $
  */
 public class OggSpeexWriter
   extends AudioFileWriter
@@ -67,6 +67,8 @@ public class OggSpeexWriter
   private int     nframes;
   /** Defines whether or not to use VBR (Variable Bit Rate). */
   private boolean vbr;
+  /** */
+  private int     size;
   /** Ogg Stream Serial Number */
   private int     streamSerialNumber;
   /** Data buffer */
@@ -174,6 +176,7 @@ public class OggSpeexWriter
   {
     file.delete(); 
     out = new FileOutputStream(file);
+    size = 0;   
   }
 
   /**

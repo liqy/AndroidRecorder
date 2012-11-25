@@ -34,7 +34,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: Codebook.java 140 2004-10-21 16:21:58Z mgimpel $ */
+/* $Id: Codebook.java,v 1.2 2004/10/21 16:21:57 mgimpel Exp $ */
 
 /* Copyright (C) 2002 Jean-Marc Valin 
 
@@ -73,7 +73,7 @@ package org.xiph.speex;
  * 
  * @author Jim Lawrence, helloNetwork.com
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 140 $
+ * @version $Revision: 1.2 $
  */
 public interface Codebook
 {

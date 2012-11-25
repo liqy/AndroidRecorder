@@ -13,6 +13,7 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Environment;
+import android.util.Log;
 
 public class SpxPlayer implements Runnable{
 	
@@ -67,7 +68,7 @@ public class SpxPlayer implements Runnable{
 		audioTrack.play();
 
 		try {
-			
+			Log.d("--->", "bufferSizeInBytes = "+bufferSizeInBytes);
 			byte[] buffer = new byte[bufferSizeInBytes];
 			int count = 0;
 			while ((count = dataInputStreamInstance.read(buffer)) != -1) {

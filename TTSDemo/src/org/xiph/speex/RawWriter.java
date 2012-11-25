@@ -32,7 +32,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: RawWriter.java 140 2004-10-21 16:21:58Z mgimpel $ */
+/* $Id: RawWriter.java,v 1.2 2004/10/21 16:21:57 mgimpel Exp $ */
 
 package org.xiph.speex;
 
@@ -45,7 +45,7 @@ import java.io.FileOutputStream;
  * Raw Audio File Writer.
  *
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 140 $
+ * @version $Revision: 1.2 $
  */
 public class RawWriter
   extends AudioFileWriter

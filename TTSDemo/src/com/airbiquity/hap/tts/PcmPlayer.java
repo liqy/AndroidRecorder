@@ -1,8 +1,6 @@
 package com.airbiquity.hap.tts;
 
 import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,9 +8,9 @@ import java.io.InputStream;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.os.Environment;
+import android.util.Log;
 
-public class Player implements Runnable{
+public class PcmPlayer implements Runnable{
 	
 	private static final int sampleRateInHz = 16000;
 	private static final int channelConfig = AudioFormat.CHANNEL_OUT_MONO;
@@ -24,16 +22,18 @@ public class Player implements Runnable{
 	private final Object mutex = new Object();
 	private volatile boolean isPlaying = false;
 	
-	public Player(){
-		try {
-			File pcmFile = new File(Environment.getExternalStorageDirectory() + "/test.pcm");
-			dataInputStreamInstance = new DataInputStream(new FileInputStream(pcmFile));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
+	public PcmPlayer(){
+		// try {
+		// File pcmFile = new File(Environment.getExternalStorageDirectory() +
+		// "/test.pcm");
+		// dataInputStreamInstance = new DataInputStream(new
+		// FileInputStream(pcmFile));
+		// } catch (FileNotFoundException e) {
+		// e.printStackTrace();
+		// }
 	}
 	
-	public Player(InputStream is){
+	public PcmPlayer(InputStream is){
 		this.dataInputStreamInstance = new DataInputStream(is);
 	}
 
@@ -53,45 +53,18 @@ public class Player implements Runnable{
 		audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRateInHz, channelConfig, audioEncoding, 2 * bufferSizeInBytes, AudioTrack.MODE_STREAM);
 		audioTrack.play();
 		
-		// TODO
-		// SpeexEncoder spxEncoder = new SpeexEncoder();
-		// SpeexDecoder spxDecoder = new SpeexDecoder();
-		// spxEncoder.init(1, 8, 16000, 1);
-		// spxDecoder.init(1, 16000, 1,true);
-		
 		try {
 			
-			byte[] buffer = new byte[640];
+			byte[] buffer = new byte[8092];
+			int all = 0;
 			int count = 0;
 			while ((count = dataInputStreamInstance.read(buffer)) != -1) {
-				
-				//TODO 
-				// Log.d("--->", "count--->"+count);
-				// boolean processData = spxEncoder.processData(buffer, 0,
-				// count);
-				// Log.d("--->", "processData--->"+processData);
-				// byte[] encodedBuffer = new
-				// byte[spxEncoder.getProcessedDataByteSize()];
-				// Log.d("--->",
-				// "getProcessedDataByteSize--->"+spxEncoder.getProcessedDataByteSize());
-				// int encodedCount = spxEncoder.getProcessedData(encodedBuffer,
-				// 0);
-				// Log.d("--->", "encodedCount--->"+encodedCount);
-				//
-				// spxDecoder.processData(encodedBuffer, 0, encodedCount);
-				// byte[] decodedBuffer = new
-				// byte[spxDecoder.getProcessedDataByteSize()];
-				// Log.d("===>",
-				// "getProcessedDataByteSize===>"+spxDecoder.getProcessedDataByteSize());
-				// int decodedCount = spxDecoder.getProcessedData(decodedBuffer,
-				// 0);
-				// Log.d("===>", "decodedCount===>"+decodedCount);
-				//
-				// audioTrack.write(decodedBuffer,0,decodedCount);
-				
+			    Log.d("--->", "count--->"+count);
+			    Log.d("--->",  new String(buffer,0,count));
+			    all += count;
 				audioTrack.write(buffer,0,count);
 			}
-			
+			Log.d("--->", "all--->"+all);
 			dataInputStreamInstance.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

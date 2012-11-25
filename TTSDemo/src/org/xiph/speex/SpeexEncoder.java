@@ -33,7 +33,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: SpeexEncoder.java 188 2006-07-09 14:08:12Z mgimpel $ */
+/* $Id: SpeexEncoder.java,v 1.6 2005/05/27 13:15:54 mgimpel Exp $ */
 
 /* Copyright (C) 2002 Jean-Marc Valin
 
@@ -67,21 +67,19 @@
 
 package org.xiph.speex;
 
-import android.util.Log;
-
 /**
  * Main Speex Encoder class.
  * This class encodes the given PCM 16bit samples into Speex packets.
  *
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 188 $
+ * @version $Revision: 1.6 $
  */
 public class SpeexEncoder
 {
   /**
    * Version of the Speex Encoder
    */
-  public static final String VERSION = "Java Speex Encoder v0.9.7 ($Revision: 188 $)";
+  public static final String VERSION = "Java Speex Encoder v0.9.7 ($Revision: 1.6 $)";
 
   private Encoder encoder;
   private Bits    bits;
@@ -217,7 +215,7 @@ public class SpeexEncoder
     // converty raw bytes into float samples
     mapPcm16bitLittleEndian2Float(data, offset, rawData, 0, len/2);
     // encode the bitstream
-    return processData(rawData, len / 2);
+    return processData(rawData, len/2);
   }
 
   /**
@@ -236,7 +234,7 @@ public class SpeexEncoder
       throw new IllegalArgumentException("SpeexEncoder requires " + numSamplesRequired + " samples to process a Frame, not " + numShorts);
     }
     // convert shorts into float samples,
-    for (int i = 0; i < numShorts; i++) {
+    for (int i=0; i<numShorts; i++) {
       rawData[i] = (float) data[offset + i ];
     }
     // encode the bitstream
@@ -256,7 +254,7 @@ public class SpeexEncoder
       throw new IllegalArgumentException("SpeexEncoder requires " + numSamplesRequired + " samples to process a Frame, not " + numSamples );
     }
     // encode the bitstream
-    if (channels == 2) {
+    if (channels==2) {
       Stereo.encode(bits, data, frameSize);
     }
     encoder.encode(bits, data);
@@ -287,10 +285,6 @@ public class SpeexEncoder
     if (pcm16bitBytes.length - offsetInput < 2 * length) {
       throw new IllegalArgumentException("Insufficient Samples to convert to floats");
     }
-    
-    Log.d("---->", "samples"+samples.length);
-    Log.d("---->", "offsetOutput"+offsetOutput);
-    Log.d("---->", "length"+length);
     if (samples.length - offsetOutput < length) {
       throw new IllegalArgumentException("Insufficient float buffer to convert the samples");
     }

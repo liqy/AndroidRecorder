@@ -32,7 +32,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: Misc.java 188 2006-07-09 14:08:12Z mgimpel $ */
+/* $Id: Misc.java,v 1.2 2004/10/21 16:21:57 mgimpel Exp $ */
 
 package org.xiph.speex;
 
@@ -40,7 +40,7 @@ package org.xiph.speex;
  * Miscellaneous functions
  * 
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 188 $
+ * @version $Revision: 1.2 $
  */
 public class Misc
 {
@@ -56,10 +56,10 @@ public class Misc
     int part1 = subFrameSize * 7 / 2;
     int part2 = subFrameSize * 5 / 2;
     float[] window = new float[windowSize];
-    for (i  =0; i < part1; i++)
-      window[i] = (float) (0.54 - 0.46 * Math.cos(Math.PI * i / part1));
-    for (i = 0; i < part2; i++)
-      window[part1+i] = (float) (0.54 + 0.46 * Math.cos(Math.PI * i / part2));
+    for (i=0; i<part1; i++)
+      window[i]=(float) (0.54 - 0.46 * Math.cos(Math.PI * i / part1));
+    for (i=0; i<part2; i++)
+      window[part1+i]=(float) (0.54 + 0.46 * Math.cos(Math.PI * i / part2));
     return window;
   }
   
@@ -71,10 +71,10 @@ public class Misc
    */
   public static float[] lagWindow(final int lpcSize, final float lagFactor)
   {
-    float[] lagWindow = new float[lpcSize + 1];
-    for (int i = 0; i < lpcSize + 1; i++)
-      lagWindow[i] = (float) Math.exp(-0.5 * (2 * Math.PI * lagFactor * i) *
-                                             (2 * Math.PI * lagFactor * i));
+    float[] lagWindow = new float[lpcSize+1];
+    for (int i=0; i<lpcSize+1; i++)
+      lagWindow[i]=(float) Math.exp(-0.5 * (2*Math.PI*lagFactor*i) *
+                                           (2*Math.PI*lagFactor*i));
     return lagWindow;
   }
 }

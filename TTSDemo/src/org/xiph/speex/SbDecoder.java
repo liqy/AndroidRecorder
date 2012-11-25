@@ -34,7 +34,7 @@
  *                                                                            *
  ******************************************************************************/
 
-/* $Id: SbDecoder.java 156 2005-05-27 13:17:00Z mgimpel $ */
+/* $Id: SbDecoder.java,v 1.3 2005/05/27 13:17:00 mgimpel Exp $ */
 
 /* Copyright (C) 2002 Jean-Marc Valin 
 
@@ -75,7 +75,7 @@ import java.io.StreamCorruptedException;
  * 
  * @author Jim Lawrence, helloNetwork.com
  * @author Marc Gimpel, Wimba S.A. (mgimpel@horizonwimba.com)
- * @version $Revision: 156 $
+ * @version $Revision: 1.3 $
  */
 public class SbDecoder
   extends SbCodec

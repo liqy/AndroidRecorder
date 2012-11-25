@@ -13,7 +13,7 @@
     
     
     <Button 
-        android:id="@+id/start"
+        android:id="@+id/pcm_recorder"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/start"
@@ -21,7 +21,7 @@
         />
     
     <Button
-        android:id="@+id/play"
+        android:id="@+id/pcm_player"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/stop"
@@ -29,7 +29,7 @@
         />
     
     <Button 
-        android:id="@+id/tts"
+        android:id="@+id/pcm_tts"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/tts"

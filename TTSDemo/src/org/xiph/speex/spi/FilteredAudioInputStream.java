@@ -53,6 +53,7 @@ import android.media.AudioFormat;
  * @version $Revision: 1.2 $
  */
 public abstract class FilteredAudioInputStream
+ // extends AudioInputStream
 {
   /** The default size of the buffer. */
   public static final int DEFAULT_BUFFER_SIZE = 2048;
@@ -224,6 +225,7 @@ public abstract class FilteredAudioInputStream
                                   final int size,
                                   final int presize)
   {
+  //  super(in, format, length);
     this.in = in;
     if ((size <= 0) || (presize <= 0)) {
       throw new IllegalArgumentException("Buffer size <= 0");
