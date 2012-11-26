@@ -275,10 +275,6 @@ public class OggPlayer implements Runnable{
 	           ((data[offset+2] & 0xff) << 16) |
 	           (data[offset+3] << 24); // no 0xff on the last one to keep the sign
 	    
-//	    return (data[offset] << 24) |
-//		           ((data[offset+1] & 0xff) <<  16) |
-//		           ((data[offset+2] & 0xff) << 8) |
-//		           (data[offset+3] & 0xff); // no 0xff on the last one to keep the sign
 	  }	
 	
 	public void setPlaying(boolean isPlaying) {

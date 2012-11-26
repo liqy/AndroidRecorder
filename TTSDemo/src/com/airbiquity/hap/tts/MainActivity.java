@@ -121,8 +121,7 @@ public class MainActivity extends Activity {
 
 //				String accpet_format = URLEncoder
 //						.encode("audio/x-wav;codec=pcm;bit=16;rate=16000");
-				 String accpet_format =
-				 URLEncoder.encode("audio/x-speex;rate=16000");
+				String accpet_format = URLEncoder.encode("audio/x-speex;rate=16000");
 				Log.d("TAG", accpet_format);
 				Log.d("TAG", Accept_Format);
 
