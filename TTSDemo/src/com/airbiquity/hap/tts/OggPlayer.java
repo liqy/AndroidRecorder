@@ -1,6 +1,7 @@
 package com.airbiquity.hap.tts;
 
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StreamCorruptedException;
@@ -68,21 +69,14 @@ public class OggPlayer implements Runnable{
 	
 	public OggPlayer(InputStream is){
 		mDataInputStream = new DataInputStream(is);
-		
 	}
 
 	public void run() {
 		
-		speexDecoder = new SpeexDecoder();
 		
 		byte[] header = new byte[2048];
 		byte[] payload = new byte[65536];
 		byte[] decdat = new byte[44100 * 2 * 2];
-//		final int WAV_HEADERSIZE = 8;
-//		final short WAVE_FORMAT_SPEEX = (short) 0xa109;
-//		final String RIFF = "RIFF";
-//		final String FORMAT = "fmt ";
-//		final String DATA = "data";
 		final int OGG_HEADERSIZE = 27;
 		final int OGG_SEGOFFSET = 26;
 		final String OGGID = "OggS";
@@ -113,23 +107,27 @@ public class OggPlayer implements Runnable{
 		int chksum;
 		
 		try {
+			
 			while(isPlaying){
-				
 			      // read the OGG header
+				  int a = mDataInputStream.available();
+				  Log.d("--->", "avaliable  =  "+a);
 				  mDataInputStream.readFully(header, 0, OGG_HEADERSIZE);
 				  Log.d("TAG", "header = " + new String(header,0,OGG_HEADERSIZE));
+				  
 			      origchksum = readInt(header, 22);
 			      Log.d("TAG", "Origin Check Sum = " + origchksum);
 			      header[22] = 0;
 			      header[23] = 0;
 			      header[24] = 0;
 			      header[25] = 0;
+			      
 			      chksum=OggCrc.checksum(0, header, 0, OGG_HEADERSIZE);
 			      Log.d("TAG", "Check Sum = " + chksum);
 			      
 			      // make sure its a OGG header
 			      if (!OGGID.equals(new String(header, 0, 4))) {
-			        System.err.println("missing ogg id!");
+			    	System.err.println("missing ogg id!");
 			        return;
 			      }
 
@@ -139,6 +137,7 @@ public class OggPlayer implements Runnable{
 			      
 			      mDataInputStream.readFully(header, OGG_HEADERSIZE, segments);
 			      Log.d("TAG", "Segments = " + header[OGG_HEADERSIZE+segments]);
+			      
 			      chksum=OggCrc.checksum(chksum, header, OGG_HEADERSIZE, segments);
 			      Log.d("TAG", "Check Sum = " + chksum);
 
@@ -147,10 +146,12 @@ public class OggPlayer implements Runnable{
 					/* get the number of bytes in the segment */
 					bodybytes = header[OGG_HEADERSIZE + curseg] & 0xFF;
 					Log.d("TAG", "get the number of bytes in the segment. bodybytes= " + bodybytes);	
+					
 					if (bodybytes == 255) {
 						System.err.println("sorry, don't handle 255 sizes!");
 						return;
 					}
+					
 					mDataInputStream.readFully(payload, 0, bodybytes);
 					chksum = OggCrc.checksum(chksum, payload, 0, bodybytes);
 
@@ -158,17 +159,14 @@ public class OggPlayer implements Runnable{
 					/* if first packet, read the Speex header */
 					if (packetNo == 0) {
 						if (readSpeexHeader(payload, 0, bodybytes)) {
-							if (printlevel <= DEBUG) {
-								System.out.println("File Format: Ogg Speex");
-								System.out.println("Sample Rate: " + sampleRate);
-								System.out.println("Channels: " + channels);
-								System.out.println("Encoder mode: "
-										+ (mode == 0 ? "Narrowband"
-												: (mode == 1 ? "Wideband"
-														: "UltraWideband")));
-								System.out.println("Frames per packet: " + nframes);
-							}
+							
+							System.out.println("File Format: Ogg Speex");
+							System.out.println("Sample Rate: " + sampleRate);
+							System.out.println("Channels: " + channels);
+							System.out.println("Encoder mode: " + (mode == 0 ? "Narrowband" : (mode == 1 ? "Wideband" : "UltraWideband")));
+							System.out.println("Frames per packet: " + nframes);
 							packetNo++;
+							
 						} else {
 							packetNo = 0;
 						}
@@ -192,19 +190,28 @@ public class OggPlayer implements Runnable{
 							//writer.writePacket(decdat, 0, decsize);
 							audioTrack.write(decdat, 0, decsize);
 						}
+						
 						packetNo++;
 					}
 				}
 				
-				if (chksum != origchksum)
+				if (chksum != origchksum){
 					throw new IOException("Ogg CheckSums do not match");
-				
+				}
 				
 			}
 		} catch (StreamCorruptedException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (EOFException eof){
+			
+		}catch (IOException e) {
 			e.printStackTrace();
+		}finally{
+			audioTrack.flush();
+			audioTrack.stop();
+			audioTrack = null;
+			
+			mDataInputStream = null;
 		}
 		
 	}
@@ -251,6 +258,7 @@ public class OggPlayer implements Runnable{
 	    sampleRate = readInt(packet, offset+36);
 	    channels   = readInt(packet, offset+48);
 	    nframes    = readInt(packet, offset+64);
+	    speexDecoder = new SpeexDecoder();
 	    return speexDecoder.init(mode, sampleRate, channels, enhanced);
 	  }
 	
