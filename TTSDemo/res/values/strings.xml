@@ -7,7 +7,8 @@
     
     <string name="start">Starting Record</string>
     <string name="stop">Playing Record</string>
-    <string name="tts">Start TTS</string>
+    <string name="spxtts">Start Spx TTS</string>
+    <string name="pcmtts">Start Pcm TTS</string>
     <string name="record">Record</string>
     <string name="replay">Replay</string>
     

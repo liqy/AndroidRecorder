@@ -29,26 +29,18 @@
         />
     
     <Button 
+        android:id="@+id/spx_tts"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/spxtts"
+        tools:context=".MainActivity"
+        />
+    
+    <Button 
         android:id="@+id/pcm_tts"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/tts"
-        tools:context=".MainActivity"
-        />
-    
-    <Button 
-        android:id="@+id/speexEncoder"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/spx_encoder"
-        tools:context=".MainActivity"
-        />
-    
-    <Button 
-        android:id="@+id/speexDecoder"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/spx_decoder"
+        android:text="@string/pcmtts"
         tools:context=".MainActivity"
         />
     
