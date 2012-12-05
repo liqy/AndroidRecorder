@@ -70,6 +70,8 @@ public class MainActivity extends Activity {
 		"Local search bookstore"
 	};
 	
+	private final static int Times = 10;
+	
 	private String basePath;
 
 	@Override
@@ -152,8 +154,8 @@ public class MainActivity extends Activity {
 					@Override
 					public void run() {
 						
-						basePath +="/spx";
-						File pcmFolder = new File(basePath);
+						String spxBasePath = basePath +"/spx";
+						File pcmFolder = new File(spxBasePath);
 						if(!pcmFolder.exists()){
 							pcmFolder.mkdir();
 						}
@@ -161,12 +163,12 @@ public class MainActivity extends Activity {
 						
 						FileOutputStream resultWriter = null;
 						try {
-							File result = new File(basePath+"/spx_result.csv");
+							File result = new File(spxBasePath+"/spx_result.csv");
 							if(!result.exists()){
 								result.createNewFile();
 							}
 							resultWriter = new FileOutputStream(result);
-							String header = "Text"+","+"requestStart"+","+"responseStart"+","+"responseEnd"+","+"Audio(Spx)"+"\n";
+							String header = "Request Text"+","+"Request Start Time( in Millisecond )"+","+"Response Start Time( in Millisecond )"+","+"Response End Time( in Millisecond )"+","+"Audio File Name(ogg)"+","+"Request to Response( in Second )"+","+"Read Response( in Second )"+","+"Total Time( in Second )"+","+"Request Data Size( in kilobytes)"+","+"Response Data Size( in kilobytes )"+","+"Transfer Speed(KB/s)"+"\n";
 							resultWriter.write(header.getBytes());
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
@@ -175,73 +177,138 @@ public class MainActivity extends Activity {
 						}
 						
 						
+						double totalSpeed = 0;
+						
 						for(int i = 0; i<Test_Text.length;i++){
-							// Log.d("TAG", device_id);
-							// String accpet_format = URLEncoder.encode("audio/x-wav;codec=pcm;bit=16;rate=16000");
-							String accpet_format = URLEncoder.encode("audio/x-speex;rate=16000");
-							Log.d("TAG", accpet_format);
-							// Log.d("TAG", Accept_Format);
+							
+							for (int j = 0; j < Times; j++) {
+								// Log.d("TAG", device_id);
+								// String accpet_format =
+								// URLEncoder.encode("audio/x-wav;codec=pcm;bit=16;rate=16000");
+								String accpet_format = URLEncoder.encode("audio/x-speex;rate=16000");
+								Log.d("TAG", accpet_format);
+								// Log.d("TAG", Accept_Format);
 
-							HttpClient client = new DefaultHttpClient();
-							try {
-								StringBuffer url = new StringBuffer();
-								url.append(BASE_URL).append(TTS_SERVICE)
-										.append("?").append("device_id=")
-										.append(device_id).append("&language=")
-										.append(Language)
-										.append("&accept_format=")
-										.append(accpet_format);
+								HttpClient client = new DefaultHttpClient();
+								try {
+									StringBuffer url = new StringBuffer();
+									url.append(BASE_URL).append(TTS_SERVICE)
+											.append("?").append("device_id=")
+											.append(device_id)
+											.append("&language=")
+											.append(Language)
+											.append("&accept_format=")
+											.append(accpet_format);
 
-								Log.d("TAG", url.toString());
-								
-								HttpPost request = new HttpPost(url.toString());
-								request.setHeader("mip-id", MIP_ID);
-								request.setHeader("Content-Type", Content_Type);
+									Log.d("TAG", url.toString());
 
-								request.setEntity(new StringEntity(Test_Text[i],"UTF-8"));
-								long requestStart = System.currentTimeMillis();
-								HttpResponse response = client.execute(request);
-								long responseStart = System.currentTimeMillis();
-								long responseEnd = 0;
-								int statusCode = response.getStatusLine().getStatusCode();
-								Log.d("TAG", "status = " + statusCode);
-								HttpEntity entity = response.getEntity();
-								if (entity != null) {
+									HttpPost request = new HttpPost(url
+											.toString());
+									request.setHeader("mip-id", MIP_ID);
+									request.setHeader("Content-Type",
+											Content_Type);
 
-									InputStream content = entity.getContent();
+									request.setEntity(new StringEntity(
+											Test_Text[i], "UTF-8"));
+									long requestStart = System
+											.currentTimeMillis();
+									HttpResponse response = client
+											.execute(request);
+									long responseStart = System
+											.currentTimeMillis();
+									long responseEnd = 0;
+									long requestLength = Test_Text[i]
+											.getBytes().length;
+									long responseLength = 0;
+									int statusCode = response.getStatusLine()
+											.getStatusCode();
+									Log.d("TAG", "status = " + statusCode);
+									HttpEntity entity = response.getEntity();
+									if (entity != null) {
 
-									// OggPlayer oggPlayer = new
-									// OggPlayer(content);
-									// new Thread(oggPlayer).start();
-									// oggPlayer.setPlaying(true);
-									
-									File file = new File(basePath+"/Response"+i+".spx");
-									if(!file.exists()){
-										file.createNewFile();
+										InputStream content = entity
+												.getContent();
+
+										// OggPlayer oggPlayer = new
+										// OggPlayer(content);
+										// new Thread(oggPlayer).start();
+										// oggPlayer.setPlaying(true);
+
+										File file = new File(spxBasePath
+												+ "/Response" + (i+1)+"_"+(j+1)+ ".ogg");
+										if (!file.exists()) {
+											file.createNewFile();
+										}
+										FileOutputStream fos = new FileOutputStream(
+												file);
+
+										int count = 0;
+										byte[] buf = new byte[8092];
+										while ((count = content.read(buf)) != -1) {
+											fos.write(buf, 0, count);
+											responseLength += count;
+										}
+										fos.flush();
+										fos.close();
+										responseEnd = System
+												.currentTimeMillis();
 									}
-									FileOutputStream fos = new FileOutputStream(file);
-									
-									int count = 0;
-									byte[] buf = new byte[8092];
-									while ((count = content.read(buf)) != -1) {
-										fos.write(buf, 0, count);
-									}
-									fos.flush();
-									fos.close();
-									responseEnd = System.currentTimeMillis();
+									double speed = ((double) (requestLength + responseLength) / 1024)
+											/ ((double) (responseEnd - requestStart) / 1000);
+
+									String str = Test_Text[i]
+											+ ","
+											+ requestStart
+											+ ","
+											+ responseStart
+											+ ","
+											+ responseEnd
+											+ ","
+											+ "Response"
+											+ (i+1)+"_"+(j+1)
+											+ ".ogg"
+											+ ","
+											+ (double) (responseStart - requestStart) / 1000
+											+ ","
+											+ (double) (responseEnd - responseStart) / 1000
+											+ ","
+											+ (double) (responseEnd - requestStart) / 1000
+											+ ","
+											+ (double) requestLength / 1024
+											+ ","
+											+ (double) responseLength / 1024
+											+ "," + (double) speed + "\n";
+
+									resultWriter.write(str.getBytes());
+									totalSpeed += speed;
+
+								} catch (ClientProtocolException e) {
+									e.printStackTrace();
+								} catch (IOException e) {
+									e.printStackTrace();
+								} finally {
+									client.getConnectionManager()
+											.closeExpiredConnections();
 								}
-								String str = Test_Text[i]+","+requestStart+","+responseStart+","+responseEnd+","+"Response"+i+".spx"+"\n";
-								
-								resultWriter.write(str.getBytes());
-
-							} catch (ClientProtocolException e) {
-								e.printStackTrace();
-							} catch (IOException e) {
-								e.printStackTrace();
-							} finally {
-								client.getConnectionManager().closeExpiredConnections();
 							}
 
+						}
+						
+						try {
+							resultWriter.write("\n\n".getBytes());
+							resultWriter.write(new String(" , , , , , , , , , Avarage Speed ,"+totalSpeed/(Test_Text.length*Times)+"\n").getBytes());
+						} catch (IOException e) {
+							e.printStackTrace();
+						}finally{
+							try {
+								if (resultWriter != null) {
+									resultWriter.flush();
+									resultWriter.close();
+									resultWriter = null;
+								}
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
 						}
 						
 						Log.d("TAG", "Test Spx Finished!");
@@ -258,115 +325,186 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				
 				
-				new Thread(){
+				new Thread() {
 
 					@Override
 					public void run() {
-						
-						basePath +="/pcm";
-						File pcmFolder = new File(basePath);
-						if(!pcmFolder.exists()){
+
+						String pcmBasePath = basePath + "/pcm";
+						File pcmFolder = new File(pcmBasePath);
+						if (!pcmFolder.exists()) {
 							pcmFolder.mkdir();
 						}
-						
+
 						FileOutputStream resultWriter = null;
 						try {
-							File result = new File(basePath+"/pcm_result.csv");
-							if(!result.exists()){
+							File result = new File(pcmBasePath + "/pcm_result.csv");
+							if (!result.exists()) {
 								result.createNewFile();
 							}
 							resultWriter = new FileOutputStream(result);
-							String header = "Text"+","+"requestStart"+","+"responseStart"+","+"responseEnd"+","+"Audio(Pcm)"+"\n";
+							String header = "Request Text" + ","
+									+ "Request Start Time( in Millisecond )"
+									+ ","
+									+ "Response Start Time( in Millisecond )"
+									+ ","
+									+ "Response End Time( in Millisecond )"
+									+ "," + "Audio File Name(pcm)" + ","
+									+ "Request to Response( in Second )" + ","
+									+ "Read Response( in Second )" + ","
+									+ "Total Time( in Second )" + ","
+									+ "Request Data Size( in kilobytes)" + ","
+									+ "Response Data Size( in kilobytes )"
+									+ "," + "Transfer Speed(KB/s)" + "\n";
 							resultWriter.write(header.getBytes());
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
-						
-						
-						for(int i = 0; i<Test_Text.length;i++){
-							// Log.d("TAG", device_id);
-							String accpet_format = URLEncoder.encode("audio/x-wav;codec=pcm;bit=16;rate=16000");
-							// String accpet_format = URLEncoder.encode("audio/x-speex;rate=16000");
-							Log.d("TAG", accpet_format);
-							// Log.d("TAG", Accept_Format);
 
-							HttpClient client = new DefaultHttpClient();
-							try {
-								StringBuffer url = new StringBuffer();
-								url.append(BASE_URL).append(TTS_SERVICE)
-										.append("?").append("device_id=")
-										.append(device_id).append("&language=")
-										.append(Language)
-										.append("&accept_format=")
-										.append(accpet_format);
+						double totalSpeed = 0;
 
-								Log.d("TAG", url.toString());
-								
-								HttpPost request = new HttpPost(url.toString());
-								request.setHeader("mip-id", MIP_ID);
-								request.setHeader("Content-Type", Content_Type);
+						for (int i = 0; i < Test_Text.length; i++) {
 
-								request.setEntity(new StringEntity(Test_Text[i],"UTF-8"));
-								long requestStart = System.currentTimeMillis();
-								HttpResponse response = client.execute(request);
-								long responseStart = System.currentTimeMillis();
-								long responseEnd = 0;
-								int statusCode = response.getStatusLine().getStatusCode();
-								Log.d("TAG", "status = " + statusCode);
-								HttpEntity entity = response.getEntity();
-								if (entity != null) {
+							for (int j = 0; j < Times; j++) {
+								// Log.d("TAG", device_id);
+								String accpet_format = URLEncoder
+										.encode("audio/x-wav;codec=pcm;bit=16;rate=16000");
+								// String accpet_format =
+								// URLEncoder.encode("audio/x-speex;rate=16000");
+								Log.d("TAG", accpet_format);
+								// Log.d("TAG", Accept_Format);
 
-									InputStream content = entity.getContent();
+								HttpClient client = new DefaultHttpClient();
+								try {
+									StringBuffer url = new StringBuffer();
+									url.append(BASE_URL).append(TTS_SERVICE)
+											.append("?").append("device_id=")
+											.append(device_id)
+											.append("&language=")
+											.append(Language)
+											.append("&accept_format=")
+											.append(accpet_format);
 
-									// OggPlayer oggPlayer = new
-									// OggPlayer(content);
-									// new Thread(oggPlayer).start();
-									// oggPlayer.setPlaying(true);
-									
-									File file = new File(basePath+"/Response"+i+".pcm");
-									if(!file.exists()){
-										file.createNewFile();
+									Log.d("TAG", url.toString());
+
+									HttpPost request = new HttpPost(url
+											.toString());
+									request.setHeader("mip-id", MIP_ID);
+									request.setHeader("Content-Type",
+											Content_Type);
+
+									request.setEntity(new StringEntity(
+											Test_Text[i], "UTF-8"));
+									long requestStart = System
+											.currentTimeMillis();
+									HttpResponse response = client
+											.execute(request);
+									long responseStart = System
+											.currentTimeMillis();
+									long responseEnd = 0;
+									long requestLength = Test_Text[i]
+											.getBytes().length;
+									long responseLength = 0;
+									int statusCode = response.getStatusLine()
+											.getStatusCode();
+									Log.d("TAG", "status = " + statusCode);
+									HttpEntity entity = response.getEntity();
+									if (entity != null) {
+
+										InputStream content = entity
+												.getContent();
+
+										File file = new File(pcmBasePath
+												+ "/Response" + (i+1) + "_" + (j+1)
+												+ ".pcm");
+										if (!file.exists()) {
+											file.createNewFile();
+										}
+										FileOutputStream fos = new FileOutputStream(
+												file);
+
+										int count = 0;
+										byte[] buf = new byte[8092];
+										while ((count = content.read(buf)) != -1) {
+											fos.write(buf, 0, count);
+											responseLength += count;
+										}
+										fos.flush();
+										fos.close();
+										responseEnd = System
+												.currentTimeMillis();
 									}
-									FileOutputStream fos = new FileOutputStream(file);
-									
-									int count = 0;
-									byte[] buf = new byte[8092];
-									while ((count = content.read(buf)) != -1) {
-										fos.write(buf, 0, count);
-									}
-									fos.flush();
-									fos.close();
-									responseEnd = System.currentTimeMillis();
+									double speed = ((double) (requestLength + responseLength) / 1024)
+											/ ((double) (responseEnd - requestStart) / 1000);
+
+									String str = Test_Text[i]
+											+ ","
+											+ requestStart
+											+ ","
+											+ responseStart
+											+ ","
+											+ responseEnd
+											+ ","
+											+ "Response"
+											+ (i+1)
+											+ "_"
+											+ (j+1)
+											+ ".pcm"
+											+ ","
+											+ (double) (responseStart - requestStart) / 1000
+											+ ","
+											+ (double) (responseEnd - responseStart) / 1000
+											+ ","
+											+ (double) (responseEnd - requestStart) / 1000
+											+ ","
+											+ (double) requestLength / 1024
+											+ "," + (double) responseLength
+											/ 1024 + "," + (double) speed
+											+ "\n";
+
+									resultWriter.write(str.getBytes());
+									totalSpeed += speed;
+
+								} catch (ClientProtocolException e) {
+									e.printStackTrace();
+								} catch (IOException e) {
+									e.printStackTrace();
+								} finally {
+									client.getConnectionManager()
+											.closeExpiredConnections();
 								}
-								
-								String str = Test_Text[i]+","+requestStart+","+responseStart+","+responseEnd+","+"Response"+i+".pcm"+"\n";
-								resultWriter.write(str.getBytes());
-
-							} catch (ClientProtocolException e) {
-								e.printStackTrace();
-							} catch (IOException e) {
-								e.printStackTrace();
-							} finally {
-								client.getConnectionManager().closeExpiredConnections();
 							}
 
 						}
-						
+
 						try {
-							resultWriter.flush();
-							resultWriter.close();
+							resultWriter.write("\n\n".getBytes());
+							resultWriter
+									.write(new String(
+											" , , , , , , , , , Avarage Speed ,"
+													+ totalSpeed
+													/ (Test_Text.length * Times)
+													+ "\n").getBytes());
 						} catch (IOException e) {
 							e.printStackTrace();
+						} finally {
+							try {
+								if (resultWriter != null) {
+									resultWriter.flush();
+									resultWriter.close();
+									resultWriter = null;
+								}
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
 						}
-						
-						//Toast.makeText(MainActivity.this, "Test Finished", Toast.LENGTH_LONG).show();
-						Log.d("TAG", "Test Pcm Finished!");
-					}
-					
-				}.start();
 
+						Log.d("TAG", "Test pcm Finished!");
+					}
+
+				}.start();
 
 			}
 		});
