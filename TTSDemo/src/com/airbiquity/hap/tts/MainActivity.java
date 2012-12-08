@@ -9,6 +9,7 @@ import java.net.URLEncoder;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -35,6 +36,8 @@ public class MainActivity extends Activity {
 	private Button mPcmPlayerBtn;
 	private Button mSpxTts;
 	private Button mPcmTts;
+	
+	private Button mSpeaker;
 
 	private PcmRecorder mPcmRecorder;
 	private PcmPlayer mPcmPlayer;
@@ -47,8 +50,10 @@ public class MainActivity extends Activity {
 	private final static String TTS_SERVICE = "mip_services/core/api/1.0/speech/text_to_speech";
 	private final static String Language = "en_US";
 	private final static String Accept_Format = "audio%2Fx-speex%3Brate%3D16000";
-	private final static String MIP_ID = "1234";
+	private final static String MIP_ID = "4f70d255-3fc4-11e2-b89c-57a47db0387d";
 	private final static String Content_Type = "text/plain";
+	private final static String HU_ID = "1234567890";
+	//private final static String HU_ID = "DA2.2012345678901";
 	private final static String Input_Text = "how are you doing?This needs more information. ";
 	private String device_id;
 	
@@ -94,6 +99,17 @@ public class MainActivity extends Activity {
 		
 		mSpxTts = (Button) findViewById(R.id.spx_tts);
 		mPcmTts = (Button) findViewById(R.id.pcm_tts);
+		
+		mSpeaker = (Button) findViewById(R.id.speaker);
+		
+		mSpeaker.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View v) {
+				
+				testOtherLanguage();
+
+			}
+		});
 
 		mPcmRecorderBtn.setOnClickListener(new OnClickListener() {
 
@@ -149,46 +165,53 @@ public class MainActivity extends Activity {
 
 			public void onClick(View v) {
 
-				new Thread(){
+				new Thread() {
 
 					@Override
 					public void run() {
-						
-						String spxBasePath = basePath +"/spx";
+
+						String spxBasePath = basePath + "/spx";
 						File pcmFolder = new File(spxBasePath);
-						if(!pcmFolder.exists()){
+						if (!pcmFolder.exists()) {
 							pcmFolder.mkdir();
 						}
-						
-						
+
 						FileOutputStream resultWriter = null;
 						try {
-							File result = new File(spxBasePath+"/spx_result.csv");
-							if(!result.exists()){
+							File result = new File(spxBasePath
+									+ "/spx_result.csv");
+							if (!result.exists()) {
 								result.createNewFile();
 							}
 							resultWriter = new FileOutputStream(result);
-							String header = "Request Text"+","+"Request Start Time( in Millisecond )"+","+"Response Start Time( in Millisecond )"+","+"Response End Time( in Millisecond )"+","+"Audio File Name(ogg)"+","+"Request to Response( in Second )"+","+"Read Response( in Second )"+","+"Total Time( in Second )"+","+"Request Data Size( in kilobytes)"+","+"Response Data Size( in kilobytes )"+","+"Transfer Speed(KB/s)"+"\n";
+							String header = "Text"
+									+ ","
+									+ "Avg Request Start to Response Start( Second )"
+									+ ","
+									+ "Avg Response Start to Response Stop( Second )"
+									+ "," + "Audio Size( KB )" + "\n";
 							resultWriter.write(header.getBytes());
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
-						
-						
-						double totalSpeed = 0;
-						
-						for(int i = 0; i<Test_Text.length;i++){
-							
+
+						for (int i = 0; i < Test_Text.length; i++) {
+
+							double avgRequestToResponse = 0;
+							double avgResponseToEnd = 0;
+							double avgAudioSize = 0;
+
 							for (int j = 0; j < Times; j++) {
 								// Log.d("TAG", device_id);
 								// String accpet_format =
 								// URLEncoder.encode("audio/x-wav;codec=pcm;bit=16;rate=16000");
-								String accpet_format = URLEncoder.encode("audio/x-speex;rate=16000");
+								String accpet_format = URLEncoder
+										.encode("audio/x-speex;rate=16000");
 								Log.d("TAG", accpet_format);
 								// Log.d("TAG", Accept_Format);
-
+								//device_id = "DA2.2012345678901";
 								HttpClient client = new DefaultHttpClient();
 								try {
 									StringBuffer url = new StringBuffer();
@@ -202,9 +225,9 @@ public class MainActivity extends Activity {
 
 									Log.d("TAG", url.toString());
 
-									HttpPost request = new HttpPost(url
-											.toString());
+									HttpPost request = new HttpPost(url.toString());
 									request.setHeader("mip-id", MIP_ID);
+									request.setHeader("Hu-Id", HU_ID);
 									request.setHeader("Content-Type",
 											Content_Type);
 
@@ -212,17 +235,19 @@ public class MainActivity extends Activity {
 											Test_Text[i], "UTF-8"));
 									long requestStart = System
 											.currentTimeMillis();
+
 									HttpResponse response = client
 											.execute(request);
+
 									long responseStart = System
 											.currentTimeMillis();
 									long responseEnd = 0;
-									long requestLength = Test_Text[i]
-											.getBytes().length;
 									long responseLength = 0;
+
 									int statusCode = response.getStatusLine()
 											.getStatusCode();
 									Log.d("TAG", "status = " + statusCode);
+
 									HttpEntity entity = response.getEntity();
 									if (entity != null) {
 
@@ -234,13 +259,11 @@ public class MainActivity extends Activity {
 										// new Thread(oggPlayer).start();
 										// oggPlayer.setPlaying(true);
 
-										File file = new File(spxBasePath
-												+ "/Response" + (i+1)+"_"+(j+1)+ ".ogg");
+										File file = new File(spxBasePath + "/Response" + (i + 1) + "_" + (j + 1) + ".ogg");
 										if (!file.exists()) {
 											file.createNewFile();
 										}
-										FileOutputStream fos = new FileOutputStream(
-												file);
+										FileOutputStream fos = new FileOutputStream( file);
 
 										int count = 0;
 										byte[] buf = new byte[8092];
@@ -253,34 +276,10 @@ public class MainActivity extends Activity {
 										responseEnd = System
 												.currentTimeMillis();
 									}
-									double speed = ((double) (requestLength + responseLength) / 1024)
-											/ ((double) (responseEnd - requestStart) / 1000);
 
-									String str = Test_Text[i]
-											+ ","
-											+ requestStart
-											+ ","
-											+ responseStart
-											+ ","
-											+ responseEnd
-											+ ","
-											+ "Response"
-											+ (i+1)+"_"+(j+1)
-											+ ".ogg"
-											+ ","
-											+ (double) (responseStart - requestStart) / 1000
-											+ ","
-											+ (double) (responseEnd - responseStart) / 1000
-											+ ","
-											+ (double) (responseEnd - requestStart) / 1000
-											+ ","
-											+ (double) requestLength / 1024
-											+ ","
-											+ (double) responseLength / 1024
-											+ "," + (double) speed + "\n";
-
-									resultWriter.write(str.getBytes());
-									totalSpeed += speed;
+									avgRequestToResponse += (double) (responseStart - requestStart) / 1000;
+									avgResponseToEnd += (double) (responseEnd - responseStart) / 1000;
+									avgAudioSize += responseLength/1024;
 
 								} catch (ClientProtocolException e) {
 									e.printStackTrace();
@@ -292,28 +291,31 @@ public class MainActivity extends Activity {
 								}
 							}
 
-						}
-						
-						try {
-							resultWriter.write("\n\n".getBytes());
-							resultWriter.write(new String(" , , , , , , , , , Avarage Speed ,"+totalSpeed/(Test_Text.length*Times)+"\n").getBytes());
-						} catch (IOException e) {
-							e.printStackTrace();
-						}finally{
 							try {
-								if (resultWriter != null) {
-									resultWriter.flush();
-									resultWriter.close();
-									resultWriter = null;
-								}
+								String record = Test_Text[i] + ","
+										+ avgRequestToResponse / Times + ","
+										+ avgResponseToEnd / Times + ","
+										+ avgAudioSize / Times + "\n";
+								resultWriter.write(record.getBytes());
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
+
 						}
 						
+						try {
+							if (resultWriter != null) {
+								resultWriter.flush();
+								resultWriter.close();
+								resultWriter = null;
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+
 						Log.d("TAG", "Test Spx Finished!");
 					}
-					
+
 				}.start();
 				
 
@@ -330,32 +332,26 @@ public class MainActivity extends Activity {
 					@Override
 					public void run() {
 
-						String pcmBasePath = basePath + "/pcm";
-						File pcmFolder = new File(pcmBasePath);
+						String spxBasePath = basePath + "/pcm";
+						File pcmFolder = new File(spxBasePath);
 						if (!pcmFolder.exists()) {
 							pcmFolder.mkdir();
 						}
 
 						FileOutputStream resultWriter = null;
 						try {
-							File result = new File(pcmBasePath + "/pcm_result.csv");
+							File result = new File(spxBasePath
+									+ "/pcm_result.csv");
 							if (!result.exists()) {
 								result.createNewFile();
 							}
 							resultWriter = new FileOutputStream(result);
-							String header = "Request Text" + ","
-									+ "Request Start Time( in Millisecond )"
+							String header = "Text"
 									+ ","
-									+ "Response Start Time( in Millisecond )"
+									+ "Avg Request Start to Response Start( Second )"
 									+ ","
-									+ "Response End Time( in Millisecond )"
-									+ "," + "Audio File Name(pcm)" + ","
-									+ "Request to Response( in Second )" + ","
-									+ "Read Response( in Second )" + ","
-									+ "Total Time( in Second )" + ","
-									+ "Request Data Size( in kilobytes)" + ","
-									+ "Response Data Size( in kilobytes )"
-									+ "," + "Transfer Speed(KB/s)" + "\n";
+									+ "Avg Response Start to Response Stop( Second )"
+									+ "," + "Audio Size( KB )" + "\n";
 							resultWriter.write(header.getBytes());
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
@@ -363,16 +359,18 @@ public class MainActivity extends Activity {
 							e.printStackTrace();
 						}
 
-						double totalSpeed = 0;
-
 						for (int i = 0; i < Test_Text.length; i++) {
+							
+							double avgRequestToResponse = 0;
+							double avgResponseToEnd = 0;
+							double avgAudioSize = 0;
 
 							for (int j = 0; j < Times; j++) {
 								// Log.d("TAG", device_id);
-								String accpet_format = URLEncoder
-										.encode("audio/x-wav;codec=pcm;bit=16;rate=16000");
-								// String accpet_format =
-								// URLEncoder.encode("audio/x-speex;rate=16000");
+								 String accpet_format =
+								 URLEncoder.encode("audio/x-wav;codec=pcm;bit=16;rate=16000");
+								// String accpet_format = URLEncoder
+								//	.encode("audio/x-speex;rate=16000");
 								Log.d("TAG", accpet_format);
 								// Log.d("TAG", Accept_Format);
 
@@ -392,33 +390,40 @@ public class MainActivity extends Activity {
 									HttpPost request = new HttpPost(url
 											.toString());
 									request.setHeader("mip-id", MIP_ID);
-									request.setHeader("Content-Type",
-											Content_Type);
+									request.setHeader("hu-id", HU_ID);
+									request.setHeader("Content-Type",Content_Type);
 
 									request.setEntity(new StringEntity(
 											Test_Text[i], "UTF-8"));
 									long requestStart = System
 											.currentTimeMillis();
+
 									HttpResponse response = client
 											.execute(request);
+
 									long responseStart = System
 											.currentTimeMillis();
 									long responseEnd = 0;
-									long requestLength = Test_Text[i]
-											.getBytes().length;
 									long responseLength = 0;
+
 									int statusCode = response.getStatusLine()
 											.getStatusCode();
 									Log.d("TAG", "status = " + statusCode);
+
 									HttpEntity entity = response.getEntity();
 									if (entity != null) {
 
 										InputStream content = entity
 												.getContent();
 
-										File file = new File(pcmBasePath
-												+ "/Response" + (i+1) + "_" + (j+1)
-												+ ".pcm");
+										// OggPlayer oggPlayer = new
+										// OggPlayer(content);
+										// new Thread(oggPlayer).start();
+										// oggPlayer.setPlaying(true);
+
+										File file = new File(spxBasePath
+												+ "/Response" + (i + 1) + "_"
+												+ (j + 1) + ".pcm");
 										if (!file.exists()) {
 											file.createNewFile();
 										}
@@ -433,39 +438,12 @@ public class MainActivity extends Activity {
 										}
 										fos.flush();
 										fos.close();
-										responseEnd = System
-												.currentTimeMillis();
+										responseEnd = System.currentTimeMillis();
 									}
-									double speed = ((double) (requestLength + responseLength) / 1024)
-											/ ((double) (responseEnd - requestStart) / 1000);
 
-									String str = Test_Text[i]
-											+ ","
-											+ requestStart
-											+ ","
-											+ responseStart
-											+ ","
-											+ responseEnd
-											+ ","
-											+ "Response"
-											+ (i+1)
-											+ "_"
-											+ (j+1)
-											+ ".pcm"
-											+ ","
-											+ (double) (responseStart - requestStart) / 1000
-											+ ","
-											+ (double) (responseEnd - responseStart) / 1000
-											+ ","
-											+ (double) (responseEnd - requestStart) / 1000
-											+ ","
-											+ (double) requestLength / 1024
-											+ "," + (double) responseLength
-											/ 1024 + "," + (double) speed
-											+ "\n";
-
-									resultWriter.write(str.getBytes());
-									totalSpeed += speed;
+									avgRequestToResponse += (double) (responseStart - requestStart) / 1000;
+									avgResponseToEnd += (double) (responseEnd - responseStart) / 1000;
+									avgAudioSize += responseLength/1024;
 
 								} catch (ClientProtocolException e) {
 									e.printStackTrace();
@@ -477,39 +455,129 @@ public class MainActivity extends Activity {
 								}
 							}
 
-						}
-
-						try {
-							resultWriter.write("\n\n".getBytes());
-							resultWriter
-									.write(new String(
-											" , , , , , , , , , Avarage Speed ,"
-													+ totalSpeed
-													/ (Test_Text.length * Times)
-													+ "\n").getBytes());
-						} catch (IOException e) {
-							e.printStackTrace();
-						} finally {
 							try {
-								if (resultWriter != null) {
-									resultWriter.flush();
-									resultWriter.close();
-									resultWriter = null;
-								}
+								String record = Test_Text[i] + ","
+										+ avgRequestToResponse / Times + ","
+										+ avgResponseToEnd / Times + ","
+										+ avgAudioSize / Times + "\n";
+								resultWriter.write(record.getBytes());
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
+
+						}
+						
+						try {
+							if (resultWriter != null) {
+								resultWriter.flush();
+								resultWriter.close();
+								resultWriter = null;
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
 						}
 
-						Log.d("TAG", "Test pcm Finished!");
+						Log.d("TAG", "Test Spx Finished!");
 					}
 
 				}.start();
+				
 
 			}
 		});
 
 
+	}
+
+	protected void testOtherLanguage() {
+		
+		
+		new Thread() {
+
+			@Override
+			public void run() {
+
+				// Log.d("TAG", device_id);
+				String accpet_format = URLEncoder.encode("audio/x-wav;codec=pcm;bit=16;rate=16000");
+				//String accpet_format = URLEncoder.encode("audio/x-speex;rate=16000");
+				Log.d("TAG", accpet_format);
+				
+				// Log.d("TAG", Accept_Format);
+				
+				
+//				 String language = "jp_JP";
+//				 String text = "¤ªÔªšÝ¤Ç¤¹¤«¡£";
+				
+				//Long Text
+//				 String language = "en_US";
+//				 String text = " In this case, the sending device can send up to 5 TCP Segments without receiving an acknowledgement from the receiving device. After receiving the acknowledgement for Segment 1 from the receiving device, the sending device can slide its window one TCP Segment to the right side and the sending device can transmit segment 6 also.If any TCP Segment lost while its journey to the destination, the receiving device cannot acknowledge the sender. Consider while transmission, all other Segments reached the destination except Segment 3. The receiving device can acknowledge up to Segment 2. At the sending device, a timeout will occur and it will re-transmit the lost Segment 3. Now the receiving device has received all the Segments, since only Segment 3 was lost. Now the receiving device will send the ACK for Segment 5, because it has received all the Segments to Segment 5.Acknowledgement for Segment 5 ensures the sender the receiver has succesfully received all the Segments up to 5.TCP uses a byte level numbering system for communication. If the sequence number for a TCP segment at any instance was 5000 and the Segment carry 500 bytes, the sequence number for the next Segment will be 5000+500+1. That means TCP segment only carries the sequence number of the first byte in the segment.The Window size is expressed in number of bytes and is determined by the receiving device when the connection is established and can vary later. You might have noticed when transferring big files from one Windows machine to another, initially the time remaining calculation will show a large value and will come down later.";
+				
+				 String language = "en_US";
+				 String text = "A daily dose of vitamin D could actually increase a man's risk of prostate cancer a study out today shows researchers discovered the disturbing link while studying the effects of antioxidants on men's health";
+				
+				 
+			
+				Log.d("Test Data", text);
+				Log.d("Test Data", "length = "+text.length());
+				
+				HttpClient client = new DefaultHttpClient();
+				try {
+					StringBuffer url = new StringBuffer();
+					url.append(BASE_URL).append(TTS_SERVICE).append("?")
+						.append("device_id=").append(device_id)
+						.append("&language=").append(language)
+						.append("&accept_format=").append(accpet_format);
+
+					Log.d("TAG", url.toString());
+
+					HttpPost request = new HttpPost(url.toString());
+					request.setHeader("mip-id", MIP_ID);
+					request.setHeader("Hu-Id", HU_ID);
+					request.setHeader("Content-Type", Content_Type);
+					request.setEntity(new StringEntity(text, "UTF-8"));
+					HttpResponse response = client.execute(request);
+					int statusCode = response.getStatusLine().getStatusCode();
+					
+					Log.d("TAG", "status = " + statusCode);
+
+					HttpEntity entity = response.getEntity();
+					if (statusCode == HttpStatus.SC_OK && entity != null) {
+
+						InputStream content = entity.getContent();
+						
+//						OggPlayer oggPlayer = new OggPlayer(content);
+//						new Thread(oggPlayer).start();
+//						oggPlayer.setPlaying(true);
+						
+						
+						mPcmPlayer = new PcmPlayer(content);
+						new Thread(mPcmPlayer).start();
+						mPcmPlayer.setPlaying(true);
+
+
+					}else{
+						Log.d("TAG", "Error Message");
+
+						InputStream content = entity.getContent();
+
+						byte[] b = new byte[1024];
+						int c = 0;
+						while ((c = content.read(b)) != -1) {
+							Log.e("TAG", new String(b,0,c));
+						}
+					}
+
+				} catch (ClientProtocolException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					client.getConnectionManager().closeExpiredConnections();
+				}
+				Log.d("TAG", "Test Spx Finished!");
+			}
+		}.start();
+		
 	}
 
 	@Override

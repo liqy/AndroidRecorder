@@ -14,5 +14,7 @@
     
     <string name="spx_encoder">Speex Encoder</string>
     <string name="spx_decoder">Speex decoder</string>
+    
+    <string name="speak_out">Speak Out</string>
 
 </resources>
