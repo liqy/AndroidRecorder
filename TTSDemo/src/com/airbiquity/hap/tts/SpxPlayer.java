@@ -7,7 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.xiph.speex.SpeexDecoder;
+import com.airbiquity.hap.speex.SpeexDecoder;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;

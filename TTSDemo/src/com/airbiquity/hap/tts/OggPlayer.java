@@ -7,8 +7,8 @@ import java.io.InputStream;
 import java.io.StreamCorruptedException;
 import java.util.Random;
 
-import org.xiph.speex.OggCrc;
-import org.xiph.speex.SpeexDecoder;
+import com.airbiquity.hap.speex.OggCrc;
+import com.airbiquity.hap.speex.SpeexDecoder;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;

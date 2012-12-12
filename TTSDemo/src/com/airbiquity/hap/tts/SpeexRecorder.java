@@ -6,9 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.xiph.speex.OggSpeexWriter;
-import org.xiph.speex.PcmWaveWriter;
-import org.xiph.speex.SpeexEncoder;
+import com.airbiquity.hap.speex.OggSpeexWriter;
+import com.airbiquity.hap.speex.PcmWaveWriter;
+import com.airbiquity.hap.speex.SpeexEncoder;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
