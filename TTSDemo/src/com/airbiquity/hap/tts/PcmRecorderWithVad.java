@@ -13,9 +13,10 @@ import android.media.MediaRecorder;
 import android.os.Environment;
 import android.util.Log;
 
-import com.airbiquity.hap.vad.VADImpl;
+import com.airbiquity.hap.vad.SimpleVAD;
+import com.airbiquity.hap.vad.Utils;
 
-public class PcmRecorder implements Runnable {
+public class PcmRecorderWithVad implements Runnable {
 	
 	private static final int sampleRateInHz = 16000;
 	private static final int channelConfig = AudioFormat.CHANNEL_IN_MONO;
@@ -25,7 +26,7 @@ public class PcmRecorder implements Runnable {
 	private volatile boolean isRecording = false;
 	private DataOutputStream dataOutputStreamInstance = null;
 
-	public PcmRecorder() {
+	public PcmRecorderWithVad() {
 		
 		try {
 			File pcmFile = new File(Environment.getExternalStorageDirectory() + "/test.pcm");
@@ -64,13 +65,15 @@ public class PcmRecorder implements Runnable {
 		//Initialize AudioRecord, make it ready for record.
 		int bufferRead = 0;
 		int bufferSize = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioEncoding);
-		byte[] tempBuffer = new byte[bufferSize];
+		short[] tempBuffer = new short[bufferSize/2];
 		AudioRecord recordInstance = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRateInHz, channelConfig, audioEncoding, bufferSize*2);
 		recordInstance.startRecording();
 		
+		SimpleVAD vadImpl = new SimpleVAD();
+		
 		while (this.isRecording) {
 
-			bufferRead = recordInstance.read(tempBuffer, 0, bufferSize);
+			bufferRead = recordInstance.read(tempBuffer, 0, bufferSize/2);
 			
 			if (bufferRead == AudioRecord.ERROR_INVALID_OPERATION) {
 				throw new IllegalStateException( "read() returned AudioRecord.ERROR_INVALID_OPERATION");
@@ -80,8 +83,13 @@ public class PcmRecorder implements Runnable {
 				throw new IllegalStateException( "read() returned AudioRecord.ERROR_INVALID_OPERATION");
 			}
 			
+			boolean updateVadStatus = vadImpl.update(tempBuffer, bufferRead);
+			Log.d("TAG", "is voice detected = "+updateVadStatus);
+			
+			//TODO write it to file
 			try {
-				dataOutputStreamInstance.write(tempBuffer, 0, bufferRead);
+				byte[] buf = Utils.convertShortArrayToByteArray(tempBuffer, 0, bufferRead);
+				dataOutputStreamInstance.write(buf, 0, buf.length);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

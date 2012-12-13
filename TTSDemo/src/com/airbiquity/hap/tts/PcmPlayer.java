@@ -1,6 +1,8 @@
 package com.airbiquity.hap.tts;
 
 import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +10,7 @@ import java.io.InputStream;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.os.Environment;
 import android.util.Log;
 
 public class PcmPlayer implements Runnable{
@@ -23,14 +26,12 @@ public class PcmPlayer implements Runnable{
 	private volatile boolean isPlaying = false;
 	
 	public PcmPlayer(){
-		// try {
-		// File pcmFile = new File(Environment.getExternalStorageDirectory() +
-		// "/test.pcm");
-		// dataInputStreamInstance = new DataInputStream(new
-		// FileInputStream(pcmFile));
-		// } catch (FileNotFoundException e) {
-		// e.printStackTrace();
-		// }
+		try {
+			File pcmFile = new File(Environment.getExternalStorageDirectory() + "/test.pcm");
+			dataInputStreamInstance = new DataInputStream(new FileInputStream(pcmFile));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public PcmPlayer(InputStream is){

@@ -44,11 +44,27 @@
         tools:context=".MainActivity"
         />
     
-     <Button 
+    <Button 
         android:id="@+id/speaker"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/speak_out"
+        tools:context=".MainActivity"
+        />
+     
+    <Button 
+        android:id="@+id/pcm_vr"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/pcmvr"
+        tools:context=".MainActivity"
+        />
+    
+     <Button 
+        android:id="@+id/files_vr"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/filesvr"
         tools:context=".MainActivity"
         />
     

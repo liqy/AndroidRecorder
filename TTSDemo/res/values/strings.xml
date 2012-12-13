@@ -16,5 +16,8 @@
     <string name="spx_decoder">Speex decoder</string>
     
     <string name="speak_out">Speak Out</string>
+    
+    <string name="pcmvr">Start Pcm VR</string>
+    <string name="filesvr">Start send files to VR</string>
 
 </resources>
