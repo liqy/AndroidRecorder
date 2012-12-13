@@ -1,11 +1,17 @@
 package com.airbiquity.hap.tts;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -59,6 +65,32 @@ public class PcmRecorderWithVad implements Runnable {
 				}
 			}
 		}
+		
+		HttpURLConnection urlConnection = null;
+		OutputStream out = null;
+		InputStream in = null;
+		try {
+			URL url = new URL("http://192.168.1.101:8080/ChunkServer/ChunkToast");
+			urlConnection = (HttpURLConnection) url.openConnection();
+			
+			urlConnection.setRequestProperty("mip-Id", "1234");
+			urlConnection.setRequestProperty("huId", "1234567890");
+			
+			
+			urlConnection.setDoOutput(true);
+			urlConnection.setChunkedStreamingMode(0);
+
+			out = new BufferedOutputStream(urlConnection.getOutputStream());
+			//writeStream(out);
+			
+			in = new BufferedInputStream(urlConnection.getInputStream());
+			//readStream(in);
+			
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 		android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 		
@@ -68,6 +100,9 @@ public class PcmRecorderWithVad implements Runnable {
 		short[] tempBuffer = new short[bufferSize/2];
 		AudioRecord recordInstance = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRateInHz, channelConfig, audioEncoding, bufferSize*2);
 		recordInstance.startRecording();
+		
+		
+		
 		
 		SimpleVAD vadImpl = new SimpleVAD();
 		

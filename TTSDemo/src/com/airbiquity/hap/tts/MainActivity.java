@@ -8,6 +8,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 
 import org.apache.http.HttpEntity;
@@ -53,8 +57,9 @@ public class MainActivity extends Activity{
 	// http://nissanmipdevgw.airbiquity.com:9018/mip_services/core/api/1.0/speech/text_to_speech?device_id=1234567890124212&language=en_US&accept_format=audio%2Fx-speex%3Brate%3D16000
 	private final static String BASE_URL = "http://nissanmipdevgw.airbiquity.com:9018/";
 	private final static String TTS_SERVICE = "mip_services/core/api/1.0/speech/text_to_speech";
+	private final static String STT_SERVICE = "mip_services/core/api/1.0/speech/speech_to_text";  
 	private final static String Language = "en_US";
-	private final static String Accept_Format = "audio%2Fx-speex%3Brate%3D16000";
+	//private final static String Accept_Format = "audio%2Fx-speex%3Brate%3D16000";
 	//private final static String MIP_ID = "4f70d255-3fc4-11e2-b89c-57a47db0387d";
 	private final static String MIP_ID = "1234";
 	private final static String Content_Type = "text/plain";
@@ -64,7 +69,7 @@ public class MainActivity extends Activity{
 	private String basePath;
 	
 	private final static int Times = 10;
-	private final static String Input_Text = "how are you doing?This needs more information. ";
+	//private final static String Input_Text = "how are you doing?This needs more information. ";
 	private final static String[] Test_Text = new String[]{
 		"A daily dose of vitamin D could actually increase a man's risk of prostate cancer a study out today shows researchers discovered the disturbing link while studying the effects of antioxidants on men's health",
 		"A Texas woman is suing continental airlines and three other carriers over mental trauma she said she experienced during turbulence on a flight",
@@ -83,8 +88,6 @@ public class MainActivity extends Activity{
 		"Local search bookstore"
 	};
 	
-	
-	private final static String STT_SERVICE = "mip_services/core/api/1.0/speech/speech_to_text";  
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -694,44 +697,7 @@ public class MainActivity extends Activity{
 		mPcmRecorderWithVad = new PcmRecorderWithVad();
 		new Thread(mPcmRecorderWithVad).start();
 		mPcmRecorderWithVad.setRecording(true);
-		
-		
-		
-//		try {
-//			String accept_language = URLEncoder.encode("en_US");
-//			String audio_content_type = URLEncoder.encode("audio/x-wav;codec=pcm;bit=16;rate=16000");
-//			boolean multiple_results = true;
-//			String content_type = "binary/octet-stream";
-//			
-//			HttpClient client = new DefaultHttpClient();
-//			StringBuffer url = new StringBuffer();
-//			
-//			url.append(BASE_URL).append(STT_SERVICE).append("?")
-//					.append("device_id=").append(device_id)
-//					.append("&audio_content_type=").append(audio_content_type)
-//					.append("&accept_language=").append(accept_language)
-//					.append("&multiple_results=").append(multiple_results);
-//
-//			Log.d("TAG", url.toString());
-//
-//			HttpPost request = new HttpPost(url.toString());
-//			request.setHeader("mip-id", MIP_ID);
-//			request.setHeader("Hu-Id", HU_ID);
-//			request.setHeader("Content-Type", content_type);
-//			
-//			//request.setEntity(new StringEntity(text, "UTF-8"));
-//			//request.getEntity().get
-//			
-//			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//			ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-//			
-//			HttpResponse response = client.execute(request);
-//			int statusCode = response.getStatusLine().getStatusCode();
-//		} catch (ClientProtocolException e) {
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
+
 		
 		AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 		ProgressBar pb = new ProgressBar(MainActivity.this);
@@ -746,6 +712,54 @@ public class MainActivity extends Activity{
 					}
 				});
 		builder.show();
+		
+		
+		
+		
+		try {
+		String accept_language = URLEncoder.encode("en_US");
+		String audio_content_type = URLEncoder.encode("audio/x-wav;codec=pcm;bit=16;rate=16000");
+		boolean multiple_results = true;
+		String content_type = "binary/octet-stream";
+		
+		HttpClient client = new DefaultHttpClient();
+		StringBuffer url = new StringBuffer();
+		
+		url.append(BASE_URL).append(STT_SERVICE).append("?")
+				.append("device_id=").append(device_id)
+				.append("&audio_content_type=").append(audio_content_type)
+				.append("&accept_language=").append(accept_language)
+				.append("&multiple_results=").append(multiple_results);
+
+		Log.d("TAG", url.toString());
+		
+		URL myHost = new URL(url.toString());
+		HttpURLConnection openConnection = (HttpURLConnection)myHost.openConnection();
+		
+		OutputStream outputStream = openConnection.getOutputStream();
+		//outputStream.write(buffer, offset, count);
+		
+		
+		
+		HttpPost request = new HttpPost(url.toString());
+		request.setHeader("mip-id", MIP_ID);
+		request.setHeader("Hu-Id", HU_ID);
+		request.setHeader("Content-Type", content_type);
+		
+		//request.setEntity(new StringEntity(text, "UTF-8"));
+		//request.getEntity().get
+		
+//		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+		
+		
+		HttpResponse response = client.execute(request);
+		int statusCode = response.getStatusLine().getStatusCode();
+	} catch (ClientProtocolException e) {
+		e.printStackTrace();
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
 		
 	}
 
